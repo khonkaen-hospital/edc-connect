@@ -1,0 +1,59 @@
+body {
+  font: caption;
+  padding:0;
+  margin: 0;
+  color: #575757;
+  background: #fafafa;
+}
+.header{
+  background-color: #002538;
+  padding: 0px 20px;
+  height: 5rem;
+  line-height: 50px;
+}
+
+.header .branding {
+  color: #FFFFFF;
+  font-weight: bold;
+  font-size: 1.7rem;
+}
+.header .branding>span{
+  color: greenyellow;
+}
+
+label {
+ color: #6b6b6b;
+ font-weight: 500;
+ font-size: 15px;
+}
+
+.container{
+ margin-top:20px;
+}
+
+.icono{
+  width: 18px;
+  height: 18px;
+}
+
+.button-primary {
+  background-color: #0077b8;
+  border-color: #0077b8;
+}
+.button-primary.button-clear,
+.button-primary.button-outline {
+  background-color: transparent;
+  color: black;
+}
+.button-primary.button-clear {
+  border-color: transparent;
+}
+
+
+.button-outline {
+  color: #0077b8!important;
+  border: 1px solid #0077b8;
+  background-color: transparent;
+  color: black;
+}
+

@@ -5,17 +5,34 @@
     <title>EDC Connect [V 1.0.0]</title>
     
     <link rel="stylesheet" href="../node_modules/milligram/dist/milligram.min.css" />
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="./assets/font-awesome/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="./assets/index.css">
   </head>
   <body>
     <div class="header">
-        <div class="branding">EDC Conect</div>
+        <div class="branding"> <span>EDC</span> CONNECT</div>
     </div>
-    
-      <div id="setting-page" class="container">
+     
+    <div id="index-page" class="container">
+              <div class="row">
+                <div class="column">
+                      <button style="width: 100%;" id="btnConnect"  type="button" class="button button-primary">  <i class="fa fa-refresh" aria-hidden="true"></i>  เชื่อมต่อเครื่อง EDC </button>
+                </div>
+                <div class="column">
+                  <button style="width: 100%;" id="btnSetting" type="button" class="button button-outline"> <i class="fa fa-cog" aria-hidden="true"></i> ตั้งค่าระบบ</button>
+                </div>
+              </div>
+
+              <label for="txtLogs">Logs</label> 
+            <textarea name="txtLogs" style="height: 50px;" readonly id="txtLogs"></textarea>
+
+
+    </div>
+
+      <div id="setting-page" style="display: none;" class="container">
         <h4>Settings</h4>
         <form id="settingForm" name="settingForm">
-          <legend>MQtt</legend>
+          <legend>MQTT</legend>
           <div class="row">
               <div class="column">
                 <label for="txtMqttHost">MQTT Server</label>
@@ -27,14 +44,13 @@
               </div>
               <div class="column">
                 <label for="txtMqttPassword">MQTT Password</label>
-                <input type="password" placeholder="******" id="txtMqttPassword">
+                <input type="password" placeholder="" id="txtMqttPassword">
               </div>
             </div> 
             </fieldset>
 
-
             <fieldset>
-                <legend>Mysql Connection</legend>
+                <legend>MYSQL</legend>
               <div class="row">
                 <div class="column">
                   <label for="txtHost">Host</label>
@@ -51,17 +67,57 @@
               </div>
               
              <div class="row">
-                <div class="column column-40">
+                <div class="column">
                   <label for="txtDatabaseName">Database Name</label>
                   <input type="text"  id="txtDatabaseName">
                 </div>
+                <div class="column"></div>
+                <div class="column"></div>
                 
               </div>
 
               </fieldset>
 
-                <button id="saveSetting" type="button" class="button">Save</button>
-                <button id="btnBack" type="button" class="button button-outline">Back </button>
+              <fieldset id="edcBox" >
+                  <legend>EDC</legend>
+                <div class="row">
+                    <div class="column">
+                        <label for="edcId">EDC Location</label>
+                        <select name="edcId" id="edcId"></select>
+                      </div>
+                    <div class="column">
+                      <label for="edcPort">Edc port</label>
+                      <select name="edcPort" id="edcPort"></select>
+                    </div>
+                    
+                      <div class="column">
+                          <label for="baudRate">Baud Rate</label>
+                          <input type="text" id="baudRate">
+                        </div>
+                  </div>
+                  
+  
+                  <div class="row">
+                      <div class="column">
+                          <label for="parity">Parity</label>
+                          <input type="text"  id="parity">
+                        </div>
+                      <div class="column">
+                        <label for="stopBits">Stop Bits</label>
+                        <input type="text" id="stopBits">
+                      </div>
+                      <div class="column">
+                        <label for="dataBits">DataBits</label>
+                        <input type="text"  id="dataBits">
+                      </div>
+                    </div>
+                   </fieldset>
+
+                <fieldset>
+
+                <button id="saveSetting" type="button" class="button button-primary"> <i class="fa fa-save" aria-hidden="true"></i> Save</button>
+                <button id="resetSetting" type="button" class="button button-outline"> <i class="fa fa-refresh" aria-hidden="true"></i> Reset</button>
+                <button id="btnBack" type="button" class="button button-outline">  <i class="fa fa-arrow-right" aria-hidden="true"></i> Back </button>
           </form>
       </div>
 

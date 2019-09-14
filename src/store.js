@@ -12,6 +12,14 @@ const schema = {
             username: '',
             password: '',
             database: '',
+        },
+        edc: {
+            port: '',
+            location: '',
+            baudrate: '',
+            parity: '',
+            stopbits: '',
+            databits: ''
         }
     }
 };
@@ -35,13 +43,21 @@ class DataStore extends Store {
                 username: '',
                 password: '',
                 database: '',
+            },
+            edc: {
+                port: '',
+                location: 1,
+                baudrate: 9600,
+                parity: 'none',
+                stopbits: 1,
+                databits: 8
             }
         });
     }
 
     getSetting(){
         this.settingData = this.get('settingData');
-        if(this.settingData === undefined){
+        if(typeof(this.settingData) === 'undefined'){
             this.initSetting();
         }
         return this.settingData;
