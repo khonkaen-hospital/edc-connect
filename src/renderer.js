@@ -1,8 +1,7 @@
-
-
 const moment = require("moment");
 const mqtt = require("mqtt");
 const store = require("./store")
+const Db = require("./db")
 
 console.log(store.getSetting());
 // store.saveSetting({
@@ -24,6 +23,11 @@ console.log(store.getSetting());
 // ============================= Form =======================================
 // **************************************************************************
 
+var isConnection = false;
+var settingData = {};
+var conn = {};
+
+var txtLogs = document.getElementById("txtLogs");
 
 var txtMqttHost = document.getElementById("txtMqttHost");
 var txtMqttUser = document.getElementById("txtMqttUser");
@@ -50,33 +54,58 @@ var indexPage = document.getElementById("index-page");
 // **************************************************************************
 
 document.getElementById("btnBack").addEventListener("click", function(e) {
-    indexPage.style.display = 'block';
-    settingPage.style.display = 'none';
+    showIndexPage();
 });
 
 document.getElementById("btnSetting").addEventListener("click", function(e) {
-    settingPage.style.display = 'block';
-    indexPage.style.display = 'none';
+    showSettingPage()
 });
 
 document.getElementById("saveSetting").addEventListener("click", function(e) {
     saveSetting();
-    console.log(store.getSetting());
+    init();
+    showIndexPage();
 });
 
 document.getElementById("resetSetting").addEventListener("click", function(e) {
     resetSetting();
     initFormData();
-    console.log(store.getSetting());
 });
 
 // **************************************************************************
 // ============================= Functions ==================================
 // **************************************************************************
 
+function showSettingPage(){
+    settingPage.style.display = 'block';
+    indexPage.style.display = 'none';
+}
+
+function showIndexPage(){
+    indexPage.style.display = 'block';
+    settingPage.style.display = 'none';
+}
+
+function addLog(msg){
+    txtLogs.value += `\n${moment().format("HH:mm:ss")} - ${msg}`;
+    txtLogs.scrollTop = txtLogs.scrollHeight;
+}
+
+async function renderEdcLocations() {
+    let data = await conn.getEdcLocations();
+    txtEdcId.innerHTML = "";
+    if (Array.isArray(data)) {
+        data.forEach(edc => {
+            var opt = document.createElement("option");
+            opt.appendChild(document.createTextNode(edc.location_name));
+            opt.value = edc.edc_id;
+            txtEdcId.appendChild(opt);
+        });
+    }
+  }
 
 function initFormData(){
-    var settingData = store.getSetting();
+    settingData = store.getSetting();
 
     txtMqttHost.value = settingData.mqtt.host;
     txtMqttUser.value = settingData.mqtt.username;
@@ -95,8 +124,22 @@ function initFormData(){
     txtDataBits.value = settingData.edc.databits;
 }
 
-function init(){
-    initFormData()
+async function createConection(){
+    conn =  new Db({
+        host: settingData.mysql.host,
+        username: settingData.mysql.username,
+        password: settingData.mysql.password,
+        database: settingData.mysql.database ,
+    });
+    isConnection = await conn.checkIsConnection();
+    if(isConnection===false){
+        addLog(conn.error);
+        console.log(conn.error);
+        divEdcBox.style.display = 'none';
+    }else{
+        renderEdcLocations();
+        divEdcBox.style.display = 'block';
+    }
 }
 
 function saveSetting(){
@@ -131,6 +174,11 @@ function resetSetting(){
             initFormData();
         }, 1000); 
     }
+}
+
+function init(){
+    initFormData()
+    createConection();
 }
 
 // **************************************************************************

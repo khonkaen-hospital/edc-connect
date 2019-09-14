@@ -42,7 +42,7 @@ class DataStore extends Store {
                 host: '',
                 username: '',
                 password: '',
-                database: '',
+                database: 'edc',
             },
             edc: {
                 port: '',

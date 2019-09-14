@@ -1,0 +1,20 @@
+version: '3.3'
+
+volumes:
+  mysqldata:
+      driver: local
+
+services: 
+  db: 
+    image: mariadb
+    ports: 
+      - 3306:3306
+    restart: always
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - "mysqldata:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: edc
+      MYSQL_USER: edc
+      MYSQL_PASSWORD: '123132123##'
