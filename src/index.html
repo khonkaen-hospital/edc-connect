@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>EDC Connect [V 1.0.0]</title>
+    
+    <link rel="stylesheet" href="../node_modules/milligram/dist/milligram.min.css" />
+    <link rel="stylesheet" href="index.css">
+  </head>
+  <body>
+    <div class="header">
+        <div class="branding">EDC Conect</div>
+    </div>
+    
+      <div id="setting-page" class="container">
+        <h4>Settings</h4>
+        <form id="settingForm" name="settingForm">
+          <legend>MQtt</legend>
+          <div class="row">
+              <div class="column">
+                <label for="txtMqttHost">MQTT Server</label>
+                <input type="text" id="txtMqttHost">
+              </div>
+              <div class="column">
+                <label for="txtMqttUser">MQTT User</label>
+                <input type="text" id="txtMqttUser">
+              </div>
+              <div class="column">
+                <label for="txtMqttPassword">MQTT Password</label>
+                <input type="password" placeholder="******" id="txtMqttPassword">
+              </div>
+            </div> 
+            </fieldset>
+
+
+            <fieldset>
+                <legend>Mysql Connection</legend>
+              <div class="row">
+                <div class="column">
+                  <label for="txtHost">Host</label>
+                  <input type="text" id="txtHost">
+                </div>
+                <div class="column">
+                  <label for="txtUsername">Username</label>
+                  <input type="text"  id="txtUsername">
+                </div>
+                <div class="column">
+                    <label for="txtPassword">Password</label>
+                    <input type="password" id="txtPassword">
+                  </div>
+              </div>
+              
+             <div class="row">
+                <div class="column column-40">
+                  <label for="txtDatabaseName">Database Name</label>
+                  <input type="text"  id="txtDatabaseName">
+                </div>
+                
+              </div>
+
+              </fieldset>
+
+                <button id="saveSetting" type="button" class="button">Save</button>
+                <button id="btnBack" type="button" class="button button-outline">Back </button>
+          </form>
+      </div>
+
+  </body>
+  <script src="./renderer.js"></script>
+</html>
