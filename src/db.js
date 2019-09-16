@@ -30,6 +30,26 @@ class Db {
             acquireConnectionTimeout: 5000
         });
     }
+
+    async saveLog(data={edc_id,type,date,message}) {
+        return await this.knex('edc_logs').insert(data);
+    }
+
+    async getEdcApproveToDay(edcId) {
+        return await this.knex('edc_approve')
+        .whereRaw('date(datetime) = ? and edc_id = ?',[moment().format('YYYY-MM-DD'),edcId])
+        .orderBy('id','desc');
+    }
+    
+    async getEdcApproveByDate(edcId, date) {
+        return await this.knex('edc_approve')
+        .whereRaw('date(datetime) = ? and edc_id = ?',[date, edcId])
+        .orderBy('datetime','DESC');
+    }
+    
+    async saveEdcApprove(data = {edc_id,action,approve_code, trace, amount, date,message}) {
+        return await this.knex('edc_approve').insert(data);
+    }
     
     async getEdcLocations() {
         return await this.knex('edc_location').orderBy('location_name','ASC');
@@ -44,7 +64,6 @@ class Db {
             return false;
         }
     }
-
 }
 
 module.exports =  Db

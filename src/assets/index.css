@@ -57,3 +57,40 @@ label {
   color: black;
 }
 
+
+.box {
+  border: solid 1px #e6e6e6;
+  background-color: #fffcfc;
+  padding: 5px;
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  /* box-shadow: 1px 2px 6px rgba(0,0,0, 0.5);
+  -moz-box-shadow: 1px 2px 6px rgba(0,0,0, 0.5);
+  -webkit-box-shadow: 1px 2px 6px rgba(0,0,0, 0.5); */
+}
+.box-red{
+  color: red;
+}
+.box-blue{
+  color: blue;
+}
+.box-green{
+  color: greenyellow;
+}
+.box >h4 {
+  font-weight: 600;
+  margin-top: 18px;
+  margin-bottom: 0px;
+}
+.box >h4 >small {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: gray;
+}
+.box >p {
+  color: #9aa0ac;
+}
