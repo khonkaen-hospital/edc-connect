@@ -9,7 +9,7 @@ class Db {
     }
 
     connect (config = { host, username, password, database}) {
-        this.knex = require('knex')({
+        this.knex = require('knex') ({
             client: 'mysql',
             connection: {
               host : config.host,
@@ -24,7 +24,7 @@ class Db {
                     conn.query('SET NAMES UTF8', (err) => {
                       done(err, conn);
                     });
-                  }
+                }
             },
             debug: true,
             acquireConnectionTimeout: 5000
@@ -45,6 +45,16 @@ class Db {
         return await this.knex('edc_approve')
         .whereRaw('date(datetime) = ? and edc_id = ?',[date, edcId])
         .orderBy('datetime','DESC');
+    }
+
+    async getSummary(edcId, date) {
+        return await this.knex('edc_approve')
+        .select(
+        this.knex.raw('sum(amount) as amount'),
+        this.knex.raw('count(id) as total'),
+        this.knex.raw('sum(if(action=\'APPROVED\',1,0)) as approve'),
+        this.knex.raw('sum(if(action=\'APPROVED\',0,1)) as cancel'))
+        .whereRaw('date(datetime) = ? and edc_id = ?',[date, edcId]);
     }
     
     async saveEdcApprove(data = {edc_id,action,approve_code, trace, amount, date,message}) {

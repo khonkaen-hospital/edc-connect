@@ -24,12 +24,27 @@
               </div>
 
               <div class="row">
-                <div class="column"><div class="box"><h4>฿20,456.00 </h4><p>จำนวนเงิน</p></div></div>
-                <div class="column"><div class="box"><h4>234 </h4><p>รายการทั้งหมด</p></div></div>
-                <div class="column"><div class="box"><h4>2 </h4><p>รายการที่ยกเลิก</p></div></div>
+                <div class="column"><div class="box"><h4 id="boxAmount"> ฿0.00</h4><p>จำนวนเงิน</p></div></div>
+                <div class="column"><div class="box"><h4 id="boxTotal">0 </h4><p>รายการทั้งหมด</p></div></div>
+                <div class="column"><div class="box"><h4 id="boxApproveCancel">0 / 0 </h4><p>รายการ/ยกเลิก</p></div></div>
               </div>
 
-              <label for="txtLogs">Logs</label> 
+              <div class="row">
+                <div class="column">
+                    <div class="box">
+                        <canvas id="edcLineChart" height="150"></canvas>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="box">
+                        <canvas id="edcPieChart" height="150"></canvas>
+                    </div>
+                </div>
+              </div>
+              
+              
+
+            <label for="txtLogs">Logs</label> 
             <textarea name="txtLogs" style="height: 50px;" readonly id="txtLogs"></textarea>
 
 
@@ -131,5 +146,6 @@
       </div>
 
   </body>
+  <script src="./utils.js"></script>
   <script src="./renderer.js"></script>
 </html>

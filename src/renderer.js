@@ -1,12 +1,11 @@
-const moment    = require("moment")
-const mqtt      = require("mqtt")
-const Swal      = require('sweetalert2')
-const helper    = require("./helper")
-const store     = require("./store")
-const Db        = require("./db")
-const edc       = require("./edc")
-
-
+const moment = require("moment")
+const mqtt   = require("mqtt")
+const Swal   = require('sweetalert2')
+const helper = require("./helper")
+const store  = require("./store")
+const Db     = require("./db")
+const edc    = require("./edc")
+const chart    = require("./chart")
 
 
 // **************************************************************************
@@ -48,6 +47,10 @@ var txtDataBits = document.getElementById("dataBits")
 var settingPage = document.getElementById("setting-page")
 var indexPage = document.getElementById("index-page")
 
+var boxAmount = document.getElementById("boxAmount")
+var boxTotal = document.getElementById("boxTotal")
+var boxApproveCancel = document.getElementById("boxApproveCancel")
+
 
 
 // **************************************************************************
@@ -85,6 +88,7 @@ document.getElementById("saveSetting").addEventListener("click", function(e) {
             timer: 1000
         })
         showIndexPage()
+        getSummary()
     } else {
         checkMysqlIsConnect()
     }
@@ -127,7 +131,6 @@ async function renderEdcLocations() {
 async function renderEdcPorts(){
     let ports = await edc.getEdcSerialport();
     helper.buildHtmlOptions('edcPort', ports)
-    console.info('edc-ports ',ports);
     Swal.fire({
         title: 'Loading... EDC usb devices.',
         showConfirmButton: false,
@@ -159,7 +162,7 @@ function initFormData(){
 }
 
 async function createConection() {
-    conn =  new Db({
+    conn = new Db({
         host: settingData.mysql.host,
         username: settingData.mysql.username,
         password: settingData.mysql.password,
@@ -178,7 +181,6 @@ async function checkMysqlIsConnect() {
     isConnection = await conn.checkIsConnection()
     if(isConnection === false) {
         divEdcBox.style.display = 'none'
-        console.log(conn.error)
         Swal.fire({
             type: 'error',
             title: 'Error...',
@@ -247,7 +249,6 @@ function resetSetting() {
 function edcConnect() {
     let edcConnect = new edc();
     try {
-
         edcDevince = edcConnect.connect({
             portName: settingData.edc.port,
             baudRate: +settingData.edc.baudrate,
@@ -262,10 +263,11 @@ function edcConnect() {
         edcDevince.on("data", onData);
         
     } catch (error) {
+        console.log(error.message)
         Swal.fire({
             type: 'error',
-            title: 'Error...',
-            text: error.message
+            title: 'Error',
+            text: 'ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณาตรวจสอบสาย usb หรือตั้งค่าเลือกเครื่อง edc ใหม่'
         })
     }
 }
@@ -339,7 +341,6 @@ function savePayment(data = {app_code, trace, action}){
         response_data: JSON.stringify(data),
         updated_at: moment().format("YYYY-MM-DD HH:mm:ss"),
     });
-    
 }
 
 function clearData(){
@@ -351,28 +352,49 @@ function clearData(){
 }
 
 async function getApproveByToday(edcId){
-    let data = await conn.getEdcApproveToDay(edcId);
-    console.log(data);
+    return await conn.getEdcApproveToDay(edcId);
 }
 
-function init() {
+async function getSummary(){
+    edcId = settingData.edc.location;
+    let approveData = await conn.getEdcApproveToDay(edcId);
+    let timeSeries = chart.dataToTimeSeries(approveData, 'datetime', 'amount')
+    let data = await conn.getSummary(edcId,moment().format('YYYY-MM-DD'));
+
+    if(data.length==1){
+        let row = data[0];
+        renderAnimationBox(boxAmount, '฿'+(row.amount || 0))
+        renderAnimationBox(boxTotal, (row.total || 0))
+        renderAnimationBox(boxApproveCancel, (row.approve || 0) +' / '+ (row.cancel || 0))
+       
+        let pieData = [+row.approve, +row.cancel]
+        chart.lineChart('edcLineChart', timeSeries)
+        chart.pieChart('edcPieChart', pieData)
+    }
+}
+
+function renderAnimationBox(element, value){
+    element.style.animation = 'none';
+    element.offsetHeight;
+    element.style.animation = null; 
+    element.className = 'swing-in-top-fwd'
+    element.innerHTML = value;
+}
+
+
+async function init() {
     initFormData()
     createConection()
     renderEdcPorts()
+    getSummary()
+    
 }
 
 // **************************************************************************
 // ============================= Initialize ==================================
 // **************************************************************************
 
-
 init()
 
-// savePayment({
-//     app_code: '12345',
-//     trace: '1111',
-//     action: 'APPROVED'
-// })
 
-getApproveByToday(3);
 

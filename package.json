@@ -46,6 +46,9 @@
   },
   "dependencies": {
     "buffer-split": "^1.0.0",
+    "chart.js": "^2.8.0",
+    "chartjs-color": "^2.3.0",
+    "color": "^3.1.2",
     "electron-builder": "^21.2.0",
     "electron-reload": "^1.5.0",
     "electron-squirrel-startup": "^1.0.0",
