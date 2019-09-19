@@ -19,16 +19,27 @@ function dataToTimeSeries(data, fieldTime, fieldValue){
 }
 
 function lineChart(canvasId, data) {
-    let color = Color(presets.green)
+    let colorGreen = Color(presets.green)
+    let colorRed = Color(presets.red)
     let ctx = document.getElementById(canvasId).getContext('2d');
     let chart = new Chart(ctx, {
         type: 'bar',
         data: {
             datasets: [{
-                label: 'จำนวนเงิน',
-                backgroundColor: color.alpha(0.5),
-                borderColor: color,
-                data: data,
+                label: 'อนุมัติ',
+                backgroundColor: colorGreen.alpha(0.5),
+                borderColor: colorGreen,
+                data: data[0],
+                type: 'line',
+				pointRadius: 0,
+                fill: false,
+                lineTension: 0,
+                borderWidth: 2
+            },{
+                label: 'ยกเลิก',
+                backgroundColor: colorRed.alpha(0.5),
+                borderColor: colorRed,
+                data: data[1],
                 type: 'line',
 				pointRadius: 0,
                 fill: false,

@@ -1,11 +1,11 @@
 const moment = require("moment")
-const mqtt   = require("mqtt")
 const Swal   = require('sweetalert2')
 const helper = require("./helper")
 const store  = require("./store")
 const Db     = require("./db")
 const edc    = require("./edc")
 const chart    = require("./chart")
+const Mqtt    = require("./mqtt")
 
 
 // **************************************************************************
@@ -16,7 +16,8 @@ var isConnection = false
 var settingData = {}
 var conn = {}
 var edcDevince = undefined;
-let responseBuffer = [];
+var responseBuffer = [];
+var edcConnect = undefined;
 
 var _amount = 0;
 var _cid = "";
@@ -51,14 +52,20 @@ var boxAmount = document.getElementById("boxAmount")
 var boxTotal = document.getElementById("boxTotal")
 var boxApproveCancel = document.getElementById("boxApproveCancel")
 
-
-
 // **************************************************************************
 // ========================= EventListener ==================================
 // **************************************************************************
 
+document.getElementById("btnMqttStart").addEventListener("click", function(e) {
+    startMqtt();
+})
+
+document.getElementById("btnMqttStop").addEventListener("click", function(e) {
+    stopMqtt();
+})
+
 document.getElementById("btnConnect").addEventListener("click", function(e) {
-    edcConnect();
+    edcStartConnect();
 })
 
 document.getElementById("btnBack").addEventListener("click", function(e) {
@@ -117,30 +124,6 @@ function showIndexPage(){
     settingPage.style.display = 'none'
 }
 
-function addLog(msg){
-    txtLogs.value += `\n${moment().format("HH:mm:ss")} - ${msg}`
-    txtLogs.scrollTop = txtLogs.scrollHeight
-}
-
-async function renderEdcLocations() {
-    let data = await conn.getEdcLocations()
-    let array = helper.map(data,'edc_id','location_name')
-    helper.buildHtmlOptions('edcId', array)
-}
-
-async function renderEdcPorts(){
-    let ports = await edc.getEdcSerialport();
-    helper.buildHtmlOptions('edcPort', ports)
-    Swal.fire({
-        title: 'Loading... EDC usb devices.',
-        showConfirmButton: false,
-        timer: 4000,
-        onBeforeOpen: () => {
-            Swal.showLoading()
-          }
-    })
-}
-
 function initFormData(){
     settingData = store.getSetting()
 
@@ -161,63 +144,21 @@ function initFormData(){
     txtDataBits.value = settingData.edc.databits
 }
 
-async function createConection() {
-    conn = new Db({
-        host: settingData.mysql.host,
-        username: settingData.mysql.username,
-        password: settingData.mysql.password,
-        database: settingData.mysql.database ,
-    })
-    isConnection = await conn.checkIsConnection()
-    if(isConnection === false) {
-        divEdcBox.style.display = 'none'
-    } else {
-        divEdcBox.style.display = 'block'
-        renderEdcLocations()
-    }
+function addLog(msg){
+    txtLogs.value += `\n${moment().format("HH:mm:ss")} - ${msg}`
+    txtLogs.scrollTop = txtLogs.scrollHeight
 }
 
-async function checkMysqlIsConnect() {
-    isConnection = await conn.checkIsConnection()
-    if(isConnection === false) {
-        divEdcBox.style.display = 'none'
-        Swal.fire({
-            type: 'error',
-            title: 'Error...',
-            text: conn.error
-        })
-    } else{
-        divEdcBox.style.display = 'block'
-        Swal.fire({
-            type: 'success',
-            title: 'Mysql is connected.',
-            showConfirmButton: false,
-            timer: 1000
-        })
-    }
-}
-
-function saveSetting() {
-    store.saveSetting({
-        mqtt: {
-            host: txtMqttHost.value,
-            username: txtMqttUser.value,
-            password: txtMqttPassword.value
-        },
-        mysql: {
-            host: txtHost.value,
-            username: txtUsername.value,
-            password: txtPassword.value,
-            database: txtDatabaseName.value ,
-        },
-        edc: {
-            port: txtEdcPort.value,
-            location: txtEdcId.value,
-            baudrate: txtBaudRate.value,
-            parity: txtParity.value,
-            stopbits: txtStopBits.value,
-            databits: txtDataBits.value
-        }
+async function renderEdcPorts(){
+    let ports = await edc.getEdcSerialport();
+    helper.buildHtmlOptions('edcPort', ports)
+    Swal.fire({
+        title: 'Loading... EDC usb devices.',
+        showConfirmButton: false,
+        timer: 3000,
+        onBeforeOpen: () => {
+            Swal.showLoading()
+          }
     })
 }
 
@@ -246,8 +187,8 @@ function resetSetting() {
       })
 }
 
-function edcConnect() {
-    let edcConnect = new edc();
+function edcStartConnect() {
+   
     try {
         edcDevince = edcConnect.connect({
             portName: settingData.edc.port,
@@ -280,6 +221,7 @@ function onOpen(){
     })
     addLog('EDC is connected')
     btnConnect.innerHTML = '<i class="fa fa-refresh fa-spin" aria-hidden="true"></i> Connecting... ';
+    startMqtt()
 }
 
 function onError(err){
@@ -305,22 +247,112 @@ function onClose(){
 
 function onData(data) {
     let buffer = new Buffer(data);
-    console.log(buffer.toString);
-
-    let response = edcDevince.checkResponseBuffer(data);
+    console.log(buffer.toString());
+    console.log(buffer.toJSON());
+    let response = edcConnect.checkResponseBuffer(data);
+    console.log('response=',response);
     responseBuffer.push(response);
     if (responseBuffer.length == 4) {
+      if(response.action == 'TXN CANCEL'){
+          addLog('Transection is cancel.')
+      }
+      Mqtt.publish(Mqtt.getResponseTopic(), JSON.stringify(response))
       savePayment(response);
     }
 }
 
-function onSendPayment(data = {hn, vn, cid, amount, fullname}) 
+function onSendRequestToPayment(data = {hn, vn, cid, amount, fullname}) 
 {
     _hn       = data.hn;
     _vn       = data.hn;
     _cid      = data.cid;
-    _amount   = data.amount;
+    _amount   = parseFloat(data.amount).toFixed(2);
     _fullname = data.fullname;
+
+    edcConnect.payment(_amount);
+}
+
+function saveSetting() {
+    store.saveSetting({
+        mqtt: {
+            host: txtMqttHost.value,
+            username: txtMqttUser.value,
+            password: txtMqttPassword.value
+        },
+        mysql: {
+            host: txtHost.value,
+            username: txtUsername.value,
+            password: txtPassword.value,
+            database: txtDatabaseName.value ,
+        },
+        edc: {
+            port: txtEdcPort.value,
+            location: txtEdcId.value,
+            baudrate: txtBaudRate.value,
+            parity: txtParity.value,
+            stopbits: txtStopBits.value,
+            databits: txtDataBits.value
+        }
+    })
+}
+
+// **************************************************************************
+// ================================== MySQL =================================
+// **************************************************************************
+
+async function createConection() {
+
+    isConnection = await conn.checkIsConnection()
+    if(isConnection === false) {
+        divEdcBox.style.display = 'none'
+    } else {
+        divEdcBox.style.display = 'block'
+        renderEdcLocations()
+    }
+}
+
+async function checkMysqlIsConnect() {
+    isConnection = await conn.checkIsConnection()
+    if(isConnection === false) {
+        divEdcBox.style.display = 'none'
+        Swal.fire({
+            type: 'error',
+            title: 'Error...',
+            text: conn.error
+        })
+    } else{
+        divEdcBox.style.display = 'block'
+        Swal.fire({
+            type: 'success',
+            title: 'Mysql is connected.',
+            showConfirmButton: false,
+            timer: 1000
+        })
+    }
+}
+
+async function getApproveByToday(edcId){
+    return await conn.getEdcApproveToDay(edcId);
+}
+
+async function getSummary(){
+    edcId = settingData.edc.location;
+    let approveData = await conn.getEdcApproveToDay(edcId,1);
+    let cancelData = await conn.getEdcApproveToDay(edcId,0);
+    let timeSeriesApprove = chart.dataToTimeSeries(approveData, 'datetime', 'amount')
+    let timeSeriesCancel = chart.dataToTimeSeries(cancelData, 'datetime', 'amount')
+    let data = await conn.getSummary(edcId,moment().format('YYYY-MM-DD'));
+
+    if(data.length==1){
+        let row = data[0];
+        renderAnimationBox(boxAmount, '฿'+(row.amount || 0))
+        renderAnimationBox(boxTotal, (row.total || 0))
+        renderAnimationBox(boxApproveCancel, (row.approve || 0) +' / '+ (row.cancel || 0))
+       
+        let pieData = [+row.approve, +row.cancel]
+        chart.lineChart('edcLineChart', [timeSeriesApprove,timeSeriesCancel])
+        chart.pieChart('edcPieChart', pieData)
+    }
 }
 
 function savePayment(data = {app_code, trace, action}){
@@ -341,36 +373,7 @@ function savePayment(data = {app_code, trace, action}){
         response_data: JSON.stringify(data),
         updated_at: moment().format("YYYY-MM-DD HH:mm:ss"),
     });
-}
-
-function clearData(){
-    _hn       = '';
-    _vn       = '';
-    _cid      = '';
-    _amount   = 0;
-    _fullname = '';
-}
-
-async function getApproveByToday(edcId){
-    return await conn.getEdcApproveToDay(edcId);
-}
-
-async function getSummary(){
-    edcId = settingData.edc.location;
-    let approveData = await conn.getEdcApproveToDay(edcId);
-    let timeSeries = chart.dataToTimeSeries(approveData, 'datetime', 'amount')
-    let data = await conn.getSummary(edcId,moment().format('YYYY-MM-DD'));
-
-    if(data.length==1){
-        let row = data[0];
-        renderAnimationBox(boxAmount, '฿'+(row.amount || 0))
-        renderAnimationBox(boxTotal, (row.total || 0))
-        renderAnimationBox(boxApproveCancel, (row.approve || 0) +' / '+ (row.cancel || 0))
-       
-        let pieData = [+row.approve, +row.cancel]
-        chart.lineChart('edcLineChart', timeSeries)
-        chart.pieChart('edcPieChart', pieData)
-    }
+    getSummary();
 }
 
 function renderAnimationBox(element, value){
@@ -381,18 +384,74 @@ function renderAnimationBox(element, value){
     element.innerHTML = value;
 }
 
+async function renderEdcLocations() {
+    let data = await conn.getEdcLocations()
+    let array = helper.map(data,'edc_id','location_name')
+    helper.buildHtmlOptions('edcId', array)
+}
 
-async function init() {
-    initFormData()
-    createConection()
-    renderEdcPorts()
-    getSummary()
-    
+function resetData(){
+    _hn       = '';
+    _vn       = '';
+    _cid      = '';
+    _amount   = 0;
+    _fullname = '';
+    responseBuffer = [];
 }
 
 // **************************************************************************
-// ============================= Initialize ==================================
+// ============================== MQTT Function =============================
 // **************************************************************************
+
+
+function startMqtt(){
+    Mqtt.start({
+        edcid: settingData.edc.location, 
+        host: settingData.mqtt.host,
+        username: settingData.mqtt.host,
+        password: settingData.mqtt.host,
+    });
+
+    addLog('MQTT is connect.')
+
+    Mqtt.event.on('request', function(data){
+        addLog('Request edc to payment.')
+        console.log('Event request payment success', data)
+        resetData();
+        onSendRequestToPayment(data)
+    })
+
+    Mqtt.event.on('response', function(data){
+        addLog('Response from edc.')
+        console.log('Event response payment', data)
+    })
+}
+
+function stopMqtt(){
+    Mqtt.stop();
+}
+
+// **************************************************************************
+// ============================== Initialize ================================
+// **************************************************************************
+
+
+async function init() {
+    initFormData()
+
+    conn = new Db({
+        host: settingData.mysql.host,
+        username: settingData.mysql.username,
+        password: settingData.mysql.password,
+        database: settingData.mysql.database ,
+    })
+
+    edcConnect = new edc();
+    
+    createConection()
+    renderEdcPorts()
+    getSummary()
+}
 
 init()
 

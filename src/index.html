@@ -14,14 +14,7 @@
     </div>
      
     <div id="index-page" class="container">
-              <div class="row">
-                <div class="column">
-                      <button style="width: 100%;" id="btnConnect"  type="button" class="button button-primary">  <i class="fa fa-refresh" aria-hidden="true"></i>  เชื่อมต่อเครื่อง EDC </button>
-                </div>
-                <div class="column">
-                  <button style="width: 100%;" id="btnSetting" type="button" class="button button-outline"> <i class="fa fa-cog" aria-hidden="true"></i> ตั้งค่าระบบ</button>
-                </div>
-              </div>
+
 
               <div class="row">
                 <div class="column"><div class="box"><h4 id="boxAmount"> ฿0.00</h4><p>จำนวนเงิน</p></div></div>
@@ -41,11 +34,27 @@
                     </div>
                 </div>
               </div>
-              
+                            <div class="row">
+                <div class="column">
+                      <button style="width: 100%;" id="btnConnect"  type="button" class="button button-primary">  <i class="fa fa-refresh" aria-hidden="true"></i>  เชื่อมต่อเครื่อง EDC </button>
+                </div>
+                <div class="column">
+                  <button style="width: 100%;" id="btnSetting" type="button" class="button button-outline"> <i class="fa fa-cog" aria-hidden="true"></i> ตั้งค่าระบบ</button>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="column">
+                      <button style="width: 100%;" id="btnMqttStart"  type="button" class="button button-outline">  <i class="fa fa-refresh" aria-hidden="true"></i>  Start MQTT </button>
+                </div>
+                <div class="column">
+                  <button style="width: 100%;" id="btnMqttStop" type="button" class="button button-outline"> <i class="fa fa-cog" aria-hidden="true"></i> Stop MQTT</button>
+                </div>
+              </div>
               
 
             <label for="txtLogs">Logs</label> 
-            <textarea name="txtLogs" style="height: 50px;" readonly id="txtLogs"></textarea>
+            <textarea name="txtLogs"  style="font-size:14px; height: 20px;" readonly id="txtLogs"></textarea>
 
 
     </div>

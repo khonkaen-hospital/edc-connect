@@ -35,9 +35,9 @@ class Db {
         return await this.knex('edc_logs').insert(data);
     }
 
-    async getEdcApproveToDay(edcId) {
+    async getEdcApproveToDay(edcId, status = 1) {
         return await this.knex('edc_approve')
-        .whereRaw('date(datetime) = ? and edc_id = ?',[moment().format('YYYY-MM-DD'),edcId])
+        .whereRaw('date(datetime) = ? and edc_id = ? and status = ?',[moment().format('YYYY-MM-DD'),edcId, status])
         .orderBy('id','desc');
     }
     
@@ -50,7 +50,7 @@ class Db {
     async getSummary(edcId, date) {
         return await this.knex('edc_approve')
         .select(
-        this.knex.raw('sum(amount) as amount'),
+        this.knex.raw('sum(if(action=\'APPROVED\',amount,0)) as amount'),
         this.knex.raw('count(id) as total'),
         this.knex.raw('sum(if(action=\'APPROVED\',1,0)) as approve'),
         this.knex.raw('sum(if(action=\'APPROVED\',0,1)) as cancel'))
