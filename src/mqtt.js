@@ -18,6 +18,7 @@ function start(option = { edcid, host, username, password }) {
 
   client.on("connect", function() {
     console.log("Mqtt connect...", client);
+    log('Mqtt Connect')
     client.subscribe(REQUEST_TOPIC, function(err, data) {
         console.log("subscrib topic=" + REQUEST_TOPIC, data);
     });
@@ -48,14 +49,17 @@ function start(option = { edcid, host, username, password }) {
 
   client.on("close", function() {
     console.log("On close");
+    log('Mqtt close')
   });
 
-  client.on("error", function() {
-    console.log("On error");
+  client.on("error", function(err) {
+    console.log("On error",error.message);
+    log('Mqtt Error')
   });
 
   client.on("offline", function() {
     console.log("On offline");
+    log('MQTT Offline')
   });
 }
 
@@ -95,6 +99,14 @@ function getRequestTopic(){
     return REQUEST_TOPIC;
 }
 
+function getClient(){
+  return client;
+}
+
+function log(message){
+  evm.emit('log',message)
+}
+
 module.exports = {
   getResponseTopic: getResponseTopic,
   getRequestTopic: getRequestTopic,
@@ -102,5 +114,6 @@ module.exports = {
   stop: stop,
   publish: publish,
   subscribe: subscribe,
-  event: evm
+  event: evm,
+  getClient: getClient
 };

@@ -50,7 +50,7 @@ function lineChart(canvasId, data) {
         options: {
             title: {
                 display: true,
-                text: 'รายการบิลวันนี้'
+                text: 'รายการรับชำระวันนี้'
             },
             scales: {
                 xAxes: [{
@@ -91,7 +91,7 @@ function pieChart(canvasId, data) {
     var chart = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: ['รายการที่อนุมัติ', 'รายการที่ยกเลิก'],
+            labels: ['อนุมัติ', 'ยกเลิก'],
             datasets: [{
                 label: 'EDC',
                 backgroundColor: [
@@ -104,7 +104,7 @@ function pieChart(canvasId, data) {
         options: {
             title: {
                 display: true,
-                text: 'สัดส่วนบิลทั้งหมด'
+                text: 'สัดส่วนรายการรับชำระ'
             }
         }
     });

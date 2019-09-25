@@ -12,6 +12,7 @@ const schema = {
             username: '',
             password: '',
             database: '',
+            visitTableName: '',
         },
         edc: {
             port: '',
@@ -43,6 +44,7 @@ class DataStore extends Store {
                 username: '',
                 password: '',
                 database: 'edc',
+                visitTableName: '',
             },
             edc: {
                 port: '',

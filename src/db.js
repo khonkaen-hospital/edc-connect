@@ -4,11 +4,15 @@ const moment = require("moment");
 class Db {
 
     constructor(config){
+        this.knex = undefined;
+        this.visitTableName = undefined;
         this.error = undefined;
-        this.connect(config)
+        this.config = config;
     }
 
-    connect (config = { host, username, password, database}) {
+    connect () {
+        let config = this.config;
+        this.visitTableName = config.visitTableName;
         this.knex = require('knex') ({
             client: 'mysql',
             connection: {
@@ -31,8 +35,36 @@ class Db {
         });
     }
 
+    async getVisitByHn(viewName,hn) {
+        return await this.knex(viewName)
+        .where('hn', hn)
+        .where('date',moment().format('YYYY-MM-DD')) //cureent date
+        .groupBy('vn')
+        .orderBy('time','DESC');
+    }
+
+    async getPriceAmount(vn) {
+        return await this.knex(this.visitTableName)
+        .where('vn',vn);
+    }
+    
+
+    async checkIsPayment(vn) {
+        return await this.knex('edc_approve')
+        .whereIn('vn', vn)
+        .whereRaw('date(datetime) = ? and status = 1',moment().format('YYYY-MM-DD'));
+    }
+
+    async updateStatus(edc_id, data) {
+        return await knex('edc_approve').where('id', edc_id).update(data);
+    }
+
     async saveLog(data={edc_id,type,date,message}) {
         return await this.knex('edc_logs').insert(data);
+    }
+
+    async  getEdcRoles() {
+        return await this.knex('edc_roles').where({status:1}).orderBy('order','ASC');
     }
 
     async getEdcApproveToDay(edcId, status = 1) {

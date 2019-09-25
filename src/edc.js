@@ -1,12 +1,15 @@
 const serialport = require("serialport");
 const bsplit = require("buffer-split");
 const path = require("path");
+var EventEmitter = require('events');
+
 
 const STRUCTURE_KEY = {
   stx: [0x02],
-  lenght: [0x00, 0x35],
+  lenghtSale: [0x00, 0x35],
+  lenghtCancel: [0x00, 0x29],
   reverseForFurfure: [0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30],
-  presentationHeaderSale: [0x31, 0x30, 0x32, 0x32, 0x30, 0x30, 0x30, 0x1c],
+  presentationHeaderSale: [0x31, 0x30, 0x31, 0x31, 0x30, 0x30, 0x30, 0x1c],
   presentationHeaderCancel: [0x31, 0x30, 0x32, 0x36, 0x30, 0x30, 0x30, 0x1c],
   presentationHeaderReprint: [0x31, 0x30, 0x39, 0x32, 0x30, 0x30, 0x30, 0x1c],
   fieldTypeSale: [
@@ -29,11 +32,12 @@ const STRUCTURE_KEY = {
     0x36,0x35, // field data: field type
     0x00,0x06 // field data: lenght
   ],
-  etxLrc: [0x1c, 0x03, 0x14]
+  etxLrc: [0x1C, 0x03, 0x13]
 };
 
-class Edc {
-  constructor() {
+class Edc extends EventEmitter {
+  constructor () {
+    super()
     this.isConnect = false;
     this.port = undefined;
   }
@@ -71,14 +75,20 @@ class Edc {
   }
 
   sendMessage(msg) {
+    if(this.port === undefined) {
+      this.emit('error', 'ไม่สามารถเชื่อมต่อกับเครื่อง EDC ได้');
+      return;
+    }
     var buffer = new Buffer(msg);
-    console.log('buffer send=',buffer.toString());
+    console.log('buffer send=', buffer.toString());
+
     this.port.write(buffer, function(err) {
       if (err) {
-        return console.log("Error on write: ", err.message);
+        this.emit('error', err.message);
+        console.log("Error on write: ", err.message);
       }
-      console.info("buffer send complte");
     });
+    
   }
 
   checkResponseBuffer(data) {
@@ -181,7 +191,7 @@ class Edc {
     let decimalPrice = price.substring(price.indexOf(".") + 1).split('', 2).map(value => parseInt('0x3'.concat(value)));
     return [
         ...STRUCTURE_KEY.stx, 
-        ...STRUCTURE_KEY.lenght, 
+        ...STRUCTURE_KEY.lenghtSale, 
         ...STRUCTURE_KEY.reverseForFurfure, 
         ...Edc.genPresentationHeaderSale(type), 
 
@@ -218,7 +228,7 @@ class Edc {
  static genCancelData(code) {
     return [
         ...STRUCTURE_KEY.stx, 
-        ...STRUCTURE_KEY.lenght, 
+        ...STRUCTURE_KEY.lenghtCancel, 
         ...STRUCTURE_KEY.reverseForFurfure, 
         ...STRUCTURE_KEY.presentationHeaderCancel, 
         ...STRUCTURE_KEY.fieldTypeCancel, 
@@ -227,10 +237,10 @@ class Edc {
     ];
  }
 
- static genReprintCode(code) {
+ static genReprintData(code) {
     return [
         ...STRUCTURE_KEY.stx,
-        ...STRUCTURE_KEY.lenght,
+        ...STRUCTURE_KEY.lenghtCancel,
         ...STRUCTURE_KEY.reverseForFurfure,
         ...STRUCTURE_KEY.presentationHeaderReprint,
         ...STRUCTURE_KEY.fieldTypeReprint,
@@ -255,7 +265,7 @@ class Edc {
  }
 
  reprint(code) {
-  let msg = Edc.genReprintCode(code)
+  let msg = Edc.genReprintData(code)
   this.sendMessage(msg)
  }
 
