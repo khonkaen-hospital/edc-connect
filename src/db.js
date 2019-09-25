@@ -35,12 +35,17 @@ class Db {
         });
     }
 
-    async getVisitByHn(viewName,hn) {
-        return await this.knex(viewName)
+    async getVisitByHn(hn) {
+        return await this.knex(this.visitTableName)
         .where('hn', hn)
         .where('date',moment().format('YYYY-MM-DD')) //cureent date
         .groupBy('vn')
         .orderBy('time','DESC');
+    }
+
+    async getEdcApproveByID(id) {
+        return await this.knex('edc_approve')
+        .where('id',id);
     }
 
     async getPriceAmount(vn) {

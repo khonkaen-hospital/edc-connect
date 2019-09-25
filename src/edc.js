@@ -50,9 +50,15 @@ class Edc extends EventEmitter {
       dataBits: +config.dataBits
     });
 
-    this.port.on("open", () => {});
-    this.port.on("error", (err) => {});
-    this.port.on("close", () => {});
+    this.port.on("open", () => {
+      this.isConnect = true;
+    });
+    this.port.on("error", (err) => {
+      this.isConnect = false;
+    });
+    this.port.on("close", () => {
+      this.isConnect = false;
+    });
     this.port.on("data", (data) => {});
 
     return this.port;
@@ -264,8 +270,8 @@ class Edc extends EventEmitter {
   this.sendMessage(msg)
  }
 
- reprint(code) {
-  let msg = Edc.genReprintData(code)
+ reprint(trace) {
+  let msg = Edc.genReprintData(trace)
   this.sendMessage(msg)
  }
 

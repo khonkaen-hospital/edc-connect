@@ -17,9 +17,11 @@ var settingData = {}
 var conn = {}
 var edcDevince = {}
 var responseBuffer = []
-var edcConnect = {}
+var edcConnect = undefined
 var dataTable = {}
 var approveData = []
+var ACTION = 'PAYMENT'
+var STOREDATA = []
 
 var currentDate = moment().locale('th').format('DD MMM') + ' ' + (+moment().locale('th').format('YYYY') + 543)
 
@@ -184,7 +186,7 @@ btnPay.addEventListener('click', (e) => {
 // ============================= Functions ==================================
 // **************************************************************************
 
-function addEventOnClickOfTable() {
+async function addEventOnClickOfTable() {
     const buttonsCancel = document
         .getElementById('table_id')
         .getElementsByClassName('btnActionCancel')
@@ -192,6 +194,7 @@ function addEventOnClickOfTable() {
         if (buttonsCancel.hasOwnProperty(key)) {
             const element = buttonsCancel[key]
             element.addEventListener('click', e => {
+                ACTION = 'CANCEL'
                 const trace = e.srcElement.getAttribute('data-trace')
                 const edcId = e.srcElement.getAttribute('data-edc-id')
                 const status = e.srcElement.getAttribute('data-status')
@@ -209,14 +212,62 @@ function addEventOnClickOfTable() {
         if (buttonsReprint.hasOwnProperty(key)) {
             const element = buttonsReprint[key]
             element.addEventListener('click', e => {
-                const trace = e.srcElement.getAttribute('data-trace')
-                const edcId = e.srcElement.getAttribute('data-edc-id')
-                const status = e.srcElement.getAttribute('data-status')
-                console.log('Reprint', trace, edcId, status)
+                ACTION = 'REPRINT'
+                const index = e.srcElement.getAttribute('data-index')
+                const data = STOREDATA[index]
+                confirmReprint(data)
                 e.preventDefault()
             })
         }
     }
+}
+
+function confirmReprint(data) {
+    Swal.fire({
+        title: 'พิมพ์ซ้ำ?',
+        text: 'คุณต้องการที่จะพิมพ์ซ้ำใช่หรือไม่.',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, reset it!'
+    }).then(result => {
+        if (result.value) {
+           onSendRequestToReprint(data)
+        }
+    })
+}
+
+function onSendRequestToReprint(data) {
+    _hn = data.hn
+    _vn = data.vn
+    _pid = data.pid
+    _rightID = data.right_id
+    _amount = data.amount
+    _fullname = data.fullname
+    console.log(edcConnect)
+    if(edcConnect.isConnect === false){
+        Swal.fire({
+            type: 'error',
+            title: 'Error',
+            text:
+                'ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณาตรวจสอบสาย usb หรือตั้งค่าเลือกเครื่อง edc ใหม่'
+        })
+    } else {
+        edcConnect.reprint(data.trace)
+        NProgress.start()
+        Swal.fire({
+            title: 'กรุณารอซักครู่ กำลังเชื่อมต่อเครื่อง EDC...',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            // timer: 3000,
+            onBeforeOpen: () => {
+                Swal.showLoading()
+            }
+        })
+    }
+    
 }
 
 function initFormData() {
@@ -318,6 +369,7 @@ function onSendRequestToPayment(data = { hn, vn, pid, amount, fullname, rightId 
     _rightID = data.rightId
     _amount = parseFloat(data.amount).toFixed(2)
     _fullname = data.fullname
+
     edcConnect.payment(_amount)
     
     NProgress.start()
@@ -355,9 +407,7 @@ function onOpen() {
 }
 
 function onError(err) {
-    if (
-        err.message === 'Error Resource temporarily unavailable Cannot lock port'
-    ) {
+    if (err.message === 'Error Resource temporarily unavailable Cannot lock port') {
         Swal.fire({
             timer: 1000,
             type: 'info',
@@ -405,6 +455,16 @@ function onData(data) {
                 timer: 2000
             })
         }
+
+        if (ACTION === 'REPRINT') {
+            Swal.fire({
+                type: 'success',
+                title: 'พิมพ์ซำ้เสร็จเรียบร้อย',
+                showConfirmButton: false,
+                timer: 2000
+            })
+        }
+        
         if (_edcConnectType === 'MQTT') {
             Mqtt.publish(Mqtt.getResponseTopic(), JSON.stringify(response))
         } else {
@@ -415,8 +475,6 @@ function onData(data) {
     }
     addLog('[EDC][RESPONSE] EDC  ตอบกลับข้อมูลสถานะ: '+ (response.action || ''))
 }
-
-
 
 function saveSetting() {
     store.saveSetting({
@@ -569,34 +627,44 @@ async function getEdcApproveToday() {
 
 async function renderEdcList() {
     const response = await getEdcApproveToday()
-
+    STOREDATA = response;
     dataTable.clear()
-    approveData = response.map(value => {
+    const type = [
+        {code: 'TXNCANCEL', name: 'ยกเลิกระหว่างทำรายการ'},
+        {code: 'PAYMENT', name:'ชำระเงิน'},
+        {code: 'CANCEL', name: 'ยกเลิกรายการ'},
+        {code: 'REPRINT', name: 'พิมพ์ซ้ำ'}
+    ]
+    approveData = response.map((value, index) => {
         const buttonCancelTemplate = `<button 
+        data-index="${index}"
         data-trace="${value.trace}" 
         data-edc-id="${value.id}" 
         data-status="${value.status}" 
         type="button" class="button button-small button-outline btnActionCancel"> ยกเลิก </button>`
 
         const buttonReprintTemplate = `<button 
+        data-index="${index}"
         data-trace="${value.trace}" 
         data-edc-id="${value.id}" 
         data-status="${value.status}" 
         type="button" class="button button-small button-outline btnActionReprint"> พิมพ์ซ้ำ</button>`
 
-        const lineThrough = (value.status === 0 ? 'text-decoration:line-through color:red' : '')
+        const lineThrough = ( ['CANCEL','TXNCANCEL'].includes(value.type)  ? 'text-decoration:line-through; color:red' : 'color:green')
         const color = (value.status === 0 ? 'text-decoration:line-through color:red' : '')
-        const status = (value.action === 'TXN CANCEL' ? 'ยกเลิกระหว่างทำรายการ' : '')
+
+        const message = type.filter((v)=>v.code === value.type)
+        const status = (message.length===1) ? message[0].name : ''
 
         return [
             `<span style="${lineThrough}">${value.hn}</span>`,
             `<span style="${color}"> ${value.vn}</span>`,
             value.fullname,
             value.amount,
-            `<span style="color:green">${value.action}</span>`,
+            `<span style="color:green">${value.approve_code}</span>`,
             moment(value.datetime).locale('th').format('H:mm'),
             status,
-            (value.action === 'TXN CANCEL' ? '' : buttonCancelTemplate + buttonReprintTemplate)
+            (value.type === 'PAYMENT' ? buttonCancelTemplate + buttonReprintTemplate : '')
         ]
     })
 
@@ -605,9 +673,9 @@ async function renderEdcList() {
     addEventOnClickOfTable()
 }
 
-function savePayment(data = { app_code, trace, action }) {
+async function savePayment(data = { app_code, trace, action }) {
     const amount = parseFloat(_amount).toFixed(2)
-    conn.saveEdcApprove({
+    let status = await conn.saveEdcApprove({
         approve_code: data.app_code,
         trace: data.trace,
         amount: amount,
@@ -621,7 +689,8 @@ function savePayment(data = { app_code, trace, action }) {
         status: data.action === 'TXN CANCEL' ? 0 : 1,
         action: data.action,
         response_data: JSON.stringify(data),
-        updated_at: moment().format('YYYY-MM-DD HH:mm:ss')
+        updated_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+        type: ACTION
     })
     reloadData()
     resetData()
@@ -661,7 +730,7 @@ async function searchVnByHn(hn) {
     let isApproveVns = []
     let vns = []
     try {
-        vns = await conn.getVisitByHn(settingData.mysql.visitTableName, hn)
+        vns = await conn.getVisitByHn(hn)
     } catch (error) {
         addLog('Error: ' + error.message)
         return
