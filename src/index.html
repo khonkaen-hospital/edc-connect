@@ -15,13 +15,14 @@
         <ul id="menus">
           <li data-page="dashboard-page" class="menu active" id="menuDashboard">Dashboard</li>
           <li data-page="payment-page" class="menu" id="menuPaymentAuto"> จ่ายเองเชื่อมกับ HIS </li>
-          <li data-page="index-page" class="menu" id="menuPaymentManual"> จ่ายอัตโนมัติสั่งผ่าน MQTT </li>
+          <li data-page="index-page" class="menu" id="menuPaymentManual"> จ่ายอัตโนมัติผ่าน MQTT </li>
           <li data-page="approve-list-page" class="menu" id="menuApproveList">รายการรับชำระ</li>
           <li data-page="setting-page" class="menu" id="menuSetting">ตั้งค่า</li>
         </ul>
     </div>
      
     <div id="dashboard-page" class="container page pageActive" >
+        <h4>Dashboard</h4>
         <div class="row">
             <div class="column"><div class="box"><h4 id="boxAmount"> ฿0.00</h4><p>จำนวนเงิน</p></div></div>
             <div class="column"><div class="box"><h4 id="boxTotal">0 </h4><p>รายการทั้งหมด</p></div></div>
@@ -43,6 +44,7 @@
     </div>
 
     <div id="index-page" style="display: none;" class="container page">
+      <h4>จ่ายอัตโนมัติผ่าน MQTT</h4>
               <div class="row">
                 <div class="column">
                       <button style="width: 100%;" id="btnConnect"  type="button" class="button button-primary">  <i class="fa fa-refresh" aria-hidden="true"></i>  เชื่อมต่อเครื่อง EDC</button>
@@ -150,7 +152,7 @@
     </div>
 
     <div id="setting-page" style="display: none;" class="container page">
-        <h4>Settings</h4>
+        <h4>ตั้งค่า</h4>
         <form id="settingForm" name="settingForm">
           <legend>MQTT</legend>
           <div class="row">
