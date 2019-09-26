@@ -61,7 +61,7 @@ class Db {
     }
 
     async updateStatus(edc_id, data) {
-        return await knex('edc_approve').where('id', edc_id).update(data);
+        return await this.knex('edc_approve').where('id', edc_id).update(data);
     }
 
     async saveLog(data={edc_id,type,date,message}) {

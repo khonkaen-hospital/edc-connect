@@ -87,12 +87,14 @@ function initDataTable(dataTableId = "#table_id") {
     select: true,
     order: [[6, "desc"]],
     columns: [
-      { title: "HN", width: "10%" },
       { title: "VN", width: "10%" },
+      { title: "HN", width: "10%" },
+      
       { title: "ชื่อ-นามสกุล" },
       { title: "จำนวนเงิน", width: "18%" },
-      { title: "Approve Code", width: "10%" },
       { title: "เวลา", width: "5%" },
+      { title: "Approve Code", width: "10%" },
+      { title: "Trace", width: "10%" },
       { title: "สถานะ", width: "15%" },
       { title: "ยกเลิก", width: "5%" }
     ]

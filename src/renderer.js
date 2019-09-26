@@ -197,9 +197,7 @@ btnPay.addEventListener('click', (e) => {
 
 async function addEventOnClickOfTable() {
     
-    const buttonsCancel = document
-        .getElementById('table_id')
-        .getElementsByClassName('btnActionCancel')
+    const buttonsCancel = document.getElementById('table_id').getElementsByClassName('btnActionCancel')
 
     for (const key in buttonsCancel) {
         if (buttonsCancel.hasOwnProperty(key)) {
@@ -231,38 +229,22 @@ async function addEventOnClickOfTable() {
 }
 
 function confirmReprint(data) {
-    Swal.fire({
-        title: 'พิมพ์ซ้ำ?',
-        text: 'คุณต้องการที่จะพิมพ์ซ้ำใช่หรือไม่.',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, reset it!'
-    }).then(result => {
-        if (result.value) {
-           onSendRequestToReprint(data)
+    popupBox.confirm('พิมพ์ซ้ำ?','คุณต้องการที่จะพิมพ์ซ้ำใช่หรือไม่.')
+    .then(confirm => {
+        if(confirm){
+            onSendRequestToReprint(data)
         }
     })
 }
 
 function confirmCancel(data) {
-    Swal.fire({
-        title: 'ยกเลิกรายการชำระเงิน?',
-        text: 'คุณต้องการที่จะยกเลิกรายการใช่หรือไม่.',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, reset it!'
-    }).then(result => {
-        if (result.value) {
-           onSendRequestToCancel(data)
+    popupBox.confirm('ยกเลิกรายการชำระเงิน?','คุณต้องการที่จะยกเลิกรายการใช่หรือไม่.')
+    .then(confirm => {
+        if(confirm){
+            onSendRequestToCancel(data)
         }
     })
 }
-
-
 
 function initFormData() {
     settingData = store.getSetting()
@@ -403,19 +385,11 @@ function onOpen() {
 
 function onError(err) {
     if (err.message === 'Error Resource temporarily unavailable Cannot lock port') {
-        Swal.fire({
-            timer: 1000,
-            type: 'info',
-            title: 'Edc is connected...'
-        })
+        popupBox.success('Edc is connected...')
     } else {
-        Swal.fire({
-            type: 'info',
-            title: err.message
-        })
+        popupBox.error(err.message)
     }
     addLog(err.message)
-    console.error(err.message)
 }
 
 function onClose() {
@@ -577,18 +551,9 @@ async function initDb() {
 async function checkMysqlIsConnect() {
     isConnection = await conn.checkIsConnection()
     if (isConnection === false) {
-        Swal.fire({
-            type: 'error',
-            title: 'Error...',
-            text: conn.error
-        })
+        popupBox.error('Error!', conn.error)
     } else {
-        Swal.fire({
-            type: 'success',
-            title: 'Mysql is connected.',
-            showConfirmButton: false,
-            timer: 1000
-        })
+        popupBox.success('Mysql is connected!', conn.error)
     }
 }
 
@@ -596,28 +561,15 @@ async function getSummary() {
     const edcId = settingData.edc.location
     const approveData = await conn.getEdcApproveToDay(edcId, 1)
     const cancelData = await conn.getEdcApproveToDay(edcId, 0)
-    const timeSeriesApprove = chart.dataToTimeSeries(
-        approveData,
-        'datetime',
-        'amount'
-    )
-    const timeSeriesCancel = chart.dataToTimeSeries(
-        cancelData,
-        'datetime',
-        'amount'
-    )
-
+    const timeSeriesApprove = chart.dataToTimeSeries(approveData, 'datetime', 'amount')
+    const timeSeriesCancel = chart.dataToTimeSeries(cancelData, 'datetime', 'amount')
     const data = await conn.getSummary(edcId, moment().format('YYYY-MM-DD'))
 
     if (data.length === 1) {
         const row = data[0]
         renderAnimationBox(boxAmount, '฿' + (row.amount || 0))
         renderAnimationBox(boxTotal, row.total || 0)
-        renderAnimationBox(
-            boxApproveCancel,
-            (row.approve || 0) + ' / ' + (row.cancel || 0)
-        )
-
+        renderAnimationBox(boxApproveCancel, (row.approve || 0) + ' / ' + (row.cancel || 0))
         const pieData = [+row.approve, +row.cancel]
         chart.lineChart('edcLineChart', [timeSeriesApprove, timeSeriesCancel])
         chart.pieChart('edcPieChart', pieData)
@@ -669,42 +621,36 @@ async function renderEdcList() {
     STOREDATA = response;
     dataTable.clear()
     const type = [
-        {code: 'TXNCANCEL', name: 'ยกเลิกระหว่างทำรายการ'},
-        {code: 'PAYMENT', name:'ชำระเงิน'},
-        {code: 'CANCEL', name: 'ยกเลิกรายการ'},
-        {code: 'REPRINT', name: 'พิมพ์ซ้ำ'}
+        {code: 'TXNCANCEL', name: '<i class="fa fa-ban" aria-hidden="true"></i> ยกเลิกระหว่างทำรายการ'},
+        {code: 'PAYMENT', name:'<i class="fa fa-credit-card" aria-hidden="true"></i> ชำระเงิน'},
+        {code: 'CANCEL', name: '<i class="fa fa-undo" aria-hidden="true"></i> ยกเลิกรายการ'},
+        {code: 'REPRINT', name: '<i class="fa fa-print" aria-hidden="true"></i> พิมพ์ซ้ำ'}
     ]
 
     approveData = response.map((value, index) => {
-        const buttonCancelTemplate = `<button 
-        data-index="${index}"
-        data-trace="${value.trace}" 
-        data-edc-id="${value.id}" 
-        data-status="${value.status}" 
-        type="button" class="button button-small button-outline btnActionCancel"> ยกเลิก </button>`
-
-        const buttonReprintTemplate = `<button 
-        data-index="${index}"
-        data-trace="${value.trace}" 
-        data-edc-id="${value.id}" 
-        data-status="${value.status}" 
-        type="button" class="button button-small button-outline btnActionReprint"> พิมพ์ซ้ำ</button>`
-
-        const lineThrough = ( ['CANCEL','TXNCANCEL'].includes(value.type)  ? 'text-decoration:line-through; color:red' : 'color:green')
-        const color = (value.status === 0 ? 'text-decoration:line-through color:red' : '')
-
+        const btnCancelTemplate = `<button data-index="${index}" type="button" class="button button-small button-outline btnActionCancel"> ยกเลิก </button>`
+        const btnReprintTemplate = `<button data-index="${index}" type="button" class="button button-small button-outline btnActionReprint"> พิมพ์ซ้ำ</button>`
+        let lineThrough = '';
+        if((value.type === 'PAYMENT' && value.status == 0) || ['CANCEL','TXNCANCEL'].includes(value.type)){
+             lineThrough = 'text-decoration:line-through; color:red'
+        } else if(value.type === 'REPRINT') {
+            lineThrough = ''
+        }
+        else {
+             lineThrough = 'color:green'
+        }
         const message = type.filter((v)=>v.code === value.type)
         const status = (message.length===1) ? message[0].name : ''
-
         return [
+            `<span style="${lineThrough}">${value.vn}</span>`,
             `<span style="${lineThrough}">${value.hn}</span>`,
-            `<span style="${color}"> ${value.vn}</span>`,
             value.fullname,
             value.amount,
-            `<span style="color:green">${value.approve_code}</span>`,
             moment(value.datetime).locale('th').format('H:mm'),
+            `<span style="color:green">${value.approve_code}</span>`,
+            value.trace,
             status,
-            (value.type === 'PAYMENT' ? buttonCancelTemplate + buttonReprintTemplate : '')
+            (value.type === 'PAYMENT' &&  value.status == 1 ? btnCancelTemplate + btnReprintTemplate : '')
         ]
     })
 
@@ -818,7 +764,7 @@ function setDetailVisit(data = { vn, date, fullname, pid, time, clinic }) {
 
 async function updateStatus(edcId, status) {
     try {
-        await conn.updateStatus(edcId, { status: status})
+        await conn.updateStatus(edcId, {'status': status})
     } catch (error) {
         console.log(error.message)
         addLog('Error: ' + error.message)
@@ -923,9 +869,10 @@ function initEvents() {
         console.log('affterReprint',data)
     })
 
-    edcEvent.on('affterCancel', (data) => {
+    edcEvent.on('affterCancel',  (data) => {
         console.log('affterCancel',data)
-        updateStatus(data.data.id, 0)
+        console.table(data)
+         updateStatus(data.data.id, 0)
     })
 
     edcEvent.on('affterTxnCancel', (data) => {
@@ -933,7 +880,6 @@ function initEvents() {
         ACTION = data.action
     })
 }
-
 
 function setEdcData(data) {
     return Object.assign(EDCDATA, data)
@@ -955,4 +901,3 @@ async function init() {
 }
 
 init()
-
