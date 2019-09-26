@@ -81,8 +81,8 @@ var btnConnect = document.getElementById('btnConnect')
 var btnConnectPayment = document.getElementById('btnConnectPayment')
 var btnCancel = document.getElementById('btnCancel')
 
-
-
+var txtTopic = document.getElementById('txtTopic')
+var txtData = document.getElementById('txtData')
 // **************************************************************************
 // ========================= EventListener ==================================
 // **************************************************************************
@@ -93,6 +93,12 @@ document.getElementById('btnMqttStart').addEventListener('click', (e) => {
 document.getElementById('btnMqttStop').addEventListener('click', (e) => {
     stopMqtt()
 })
+document.getElementById('btnMqttTestPayment').addEventListener('click', (e) => {
+    Mqtt.publish(txtTopic.value,txtData.value)
+    popupBox.info('ส่งข้อมูลเรียบร้อย')
+})
+
+
 document.getElementById('btnConnect').addEventListener('click', (e) => {
     edcStartConnect()
     _edcConnectType = 'MQTT'

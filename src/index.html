@@ -45,28 +45,92 @@
 
     <div id="index-page" style="display: none;" class="container page">
       <h4>จ่ายอัตโนมัติผ่าน MQTT</h4>
-              <div class="row">
+        
+        <div class="row">
+          <div class="column">
+              <button style="width: 100%;" id="btnConnect"  type="button" class="button button-primary">  <i class="fa fa-refresh" aria-hidden="true"></i>  เชื่อมต่อเครื่อง EDC</button>
+          </div>
+          <div class="column">
+              <button style="width: 100%;" id="btnMqttStart"  type="button" class="button button-outline">  <i class="fa fa-refresh" aria-hidden="true"></i>  Start MQTT </button>
+          </div>
+          <div class="column">
+              <button style="width: 100%;" id="btnMqttStop" type="button" class="button button-outline"> <i class="fa fa-cog" aria-hidden="true"></i> Stop MQTT</button>
+          </div>
+        </div>
+
+        <div class="box" style="margin-top:30px; padding: 20px;text-align:left;">
+            <legend>MQTT</legend>
+            <div class="row">
                 <div class="column">
-                      <button style="width: 100%;" id="btnConnect"  type="button" class="button button-primary">  <i class="fa fa-refresh" aria-hidden="true"></i>  เชื่อมต่อเครื่อง EDC</button>
+                  <label for="txtTopic">Topic</label>
+                  <input type="text" value="/edc/request/1" id="txtTopic">
                 </div>
-               
-                
-                
                 <div class="column">
-                    <button style="width: 100%;" id="btnMqttStart"  type="button" class="button button-outline">  <i class="fa fa-refresh" aria-hidden="true"></i>  Start MQTT </button>
-              </div>
-              <div class="column">
-                <button style="width: 100%;" id="btnMqttStop" type="button" class="button button-outline"> <i class="fa fa-cog" aria-hidden="true"></i> Stop MQTT</button>
-              </div>
-              </div>
+                  <label for="">&nbsp;</label>
+                  <button id="btnMqttTestPayment" class="button button-primary">Send</button>
+                </div>
+              </div> 
+              <label for="txtData">Data</label>
+                  <textarea name="txtLogs"  style="height: 125px;" rows="5"  id="txtData">
+{
+  "hn":"62321233",
+  "vn":"21231233",
+  "pid":"1409901234500",
+  "amount":"100",
+  "fullname": "นายสาธิต สีถาพล",
+  "right_id": 11
+}
+                  </textarea>
+              </fieldset>
+        </div>
+       
+      <label for="txtLogs">Logs</label> 
+      <textarea name="txtLogs"  style="font-size:14px; height: 20px;" readonly id="txtLogs"></textarea>
+      
+      
+      
+      <h5>Payment topic</h5>
+      <pre>
+        
+  /edc/request/< edcId >
+      </pre>
+      <h5>Data</h5>
+      <pre>
 
-             
-              
+  {
+    "hn":"62321233",
+    "vn":"2123123",
+    "pid":"1203399940282",
+    "amount":"100",
+    "fullname": "นายสาธิต สีถาพล",
+    "right_id": 11 // 11,12,13,14
+  }
+      </pre>
 
-            <label for="txtLogs">Logs</label> 
-            <textarea name="txtLogs"  style="font-size:14px; height: 20px;" readonly id="txtLogs"></textarea>
+      <h5>Cancel topic</h5>
+      <pre>
+  
+  /edc/cancel/< edcId >
+      </pre>
+      <h5>Data</h5>
+      <pre>
 
+  {
+    "trace":"000034"
+  }
+      </pre>
+      <h5>Reprint topic</h5>
+      <pre>
 
+  /edc/reprint/< edcId >
+      </pre>
+      <h5>Data</h5>
+      <pre>
+
+  {
+    "trace":"000034"
+  }
+      </pre>
     </div>
 
     <div id="payment-page" style="display: none;" class="container page">
