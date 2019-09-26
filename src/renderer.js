@@ -101,14 +101,12 @@ document.getElementById('btnConnectPayment').addEventListener('click', (e) => {
     edcStartConnect()
     _edcConnectType = 'MANUAL'
 })
-document
-    .getElementById('testConnection')
-    .addEventListener('click', (e) => {
+document.getElementById('testConnection').addEventListener('click', (e) => {
         saveSetting()
         initFormData()
         initDb()
         checkMysqlIsConnect()
-    })
+})
 
 document.getElementById('saveSetting').addEventListener('click', (e) => {
     saveSetting()
@@ -143,17 +141,24 @@ txtHn.addEventListener('keydown', (e) => {
 txtVn.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         e.preventDefault()
-        _vn = e.srcElement.value
-        getPriceAmount(e.srcElement.value)
-        payAmount.focus()
+        const vn = e.srcElement.value
+        getPriceAmount(vn)
+        txtRight.focus()
     }
 })
 
 txtVn.addEventListener('click', (e) => {
     e.preventDefault()
-    _vn = e.srcElement.value
-    if (_vn) {
-        getPriceAmount(e.srcElement.value)
+    const vn = e.srcElement.value
+    if (vn) {
+        getPriceAmount(vn)
+        txtRight.focus()
+    }
+})
+
+txtRight.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault()
         payAmount.focus()
     }
 })
@@ -163,10 +168,10 @@ btnPay.addEventListener('click', (e) => {
         onSendRequestToPayment({
             hn: txtHn.value,
             vn: txtVn.value,
-            pid: _pid,
+            pid: EDCDATA.pid,
             right_id: +txtRight.value,
             amount: payAmount.value,
-            fullname: _fullname
+            fullname: EDCDATA.fullname
         })
     } else {
         addLog('จำนวนเงินทีจ่ายต้องมากกว่า 0 !')
@@ -285,8 +290,6 @@ function addLog(msg) {
     txtLogs.scrollTop = txtLogs.scrollHeight
 }
 
-
-
 function resetSetting() {
     Swal.fire({
         title: 'ลบข้อมูลการตั้งค่า?',
@@ -339,77 +342,40 @@ function edcStartConnect() {
         edcDevince.on('data', onData)
 
     } catch (error) {
-        Swal.fire({
-            type: 'error',
-            title: 'Error',
-            text:
-                'ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณาตรวจสอบสาย usb หรือตั้งค่าเลือกเครื่อง edc ใหม่'
-        })
+        popupBox.error('ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณาตั้งค่าเลือกเครื่อง edc ใหม่')
     }
 }
 
 function onSendRequestToPayment(data = { hn, vn, pid, amount, fullname, right_id }) {
-    edcEvent.emit('beforePayment', {
-        action: 'PAYMENT',
-        data: data
-    })
-}
-
-function onSendRequestToCancel(data) {
-    edcEvent.emit('beforeCancel', {
-        action: 'CANCEL',
-        data: data
-    })
-
+    data.amount = parseFloat(data.amount).toFixed(2)
     if(edcConnect.isConnect === false){
-        Swal.fire({
-            type: 'error',
-            title: 'Error',
-            text:
-                'ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณาตรวจสอบสาย usb หรือตั้งค่าเลือกเครื่อง edc ใหม่'
-        })
+        popupBox.error('ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณากดปุ่ม "เชื่อมต่อเครื่อง EDC"')
     } else {
-        edcConnect.cancel(data.trace)
-        NProgress.start()
-        Swal.fire({
-            title: 'กรุณารอซักครู่ กำลังเชื่อมต่อเครื่อง EDC...',
-            showConfirmButton: false,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            // timer: 3000,
-            onBeforeOpen: () => {
-                Swal.showLoading()
-            }
+        edcEvent.emit('beforePayment', {
+            action: 'PAYMENT',
+            data: data
         })
     }
-    
 }
 
 function onSendRequestToReprint(data) {
-    edcEvent.emit('beforeReprint', {
-        action: 'REPRINT',
-        data: data
-    })
-
     if(edcConnect.isConnect === false){
-        Swal.fire({
-            type: 'error',
-            title: 'Error',
-            text:
-                'ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณาตรวจสอบสาย usb หรือตั้งค่าเลือกเครื่อง edc ใหม่'
-        })
+        popupBox.error('ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณากดปุ่ม "เชื่อมต่อเครื่อง EDC"')
     } else {
-        edcConnect.reprint(data.trace)
-        NProgress.start()
-        Swal.fire({
-            title: 'กรุณารอซักครู่ กำลังเชื่อมต่อเครื่อง EDC...',
-            showConfirmButton: false,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            // timer: 3000,
-            onBeforeOpen: () => {
-                Swal.showLoading()
-            }
+        edcEvent.emit('beforeReprint', {
+            action: 'REPRINT',
+            data: data
+        })
+    }
+}
+
+function onSendRequestToCancel(data) {
+    if(edcConnect.isConnect === false){
+        popupBox.error('ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณากดปุ่ม "เชื่อมต่อเครื่อง EDC"')
+    } else {
+        edcEvent.emit('beforeCancel', {
+            action: 'CANCEL',
+            data: data
         })
     }
 }
@@ -468,8 +434,8 @@ function onData(data) {
     if (responseBuffer.length === 2) {
         if (response.action === 'TXN CANCEL') {
             edcEvent.emit('affterTxnCancel', {
-                action: 'TXNCANCEL',
-                data: data
+                data: EDCDATA,
+                response: response
             })
             addLog('[EDC][TXN CANCEL] กดยกเลิกระหว่างทำรายการที่ตัวเครื่อง edc')
             popupBox.loading('รายการนี้ถูกยกเลิกระหว่างทำรายการ กรุณารอซักครู่...')
@@ -477,46 +443,41 @@ function onData(data) {
     }
 
     if (responseBuffer.length === 4) {
-        if (response.action === 'TXN CANCEL') {
-            Swal.fire({
-                type: 'success',
-                title: 'ยกเลิกรายการเสร็จเรียบร้อย',
-                showConfirmButton: false,
-                timer: 2000
-            })
-        }
 
-        if (ACTION === 'REPRINT') {
-            Swal.fire({
-                type: 'success',
-                title: 'พิมพ์ซำ้เสร็จเรียบร้อย',
-                showConfirmButton: false,
-                timer: 2000
-            })
-        }
-
-        if (ACTION === 'CANCEL') {
-            edcEvent.emit('cancel',{
+        if (ACTION === 'PAYMENT') {
+            popupBox.success('ชำระเงินเสร็จเรียบร้อย.')
+            edcEvent.emit('affterPayment', {
                 action: ACTION,
-                data: response
+                data: EDCDATA,
+                response: response
             })
-            Swal.fire({
-                type: 'success',
-                title: 'ยกเลิกรายการชำระเงินเสร็จเรียบร้อย',
-                showConfirmButton: false,
-                timer: 2000
+        } else if (ACTION === 'REPRINT') {
+            popupBox.success('พิมพ์ซำ้รายการเสร็จเรียบร้อย.')
+            edcEvent.emit('affterReprint', {
+                action: ACTION,
+                data: ACTIVEDATA,
+                response: response
             })
+        } else if (ACTION === 'CANCEL' || ACTION === 'TXNCANCEL' ) {
+            popupBox.success('ยกเลิกรายการเสร็จเรียบร้อย.')
+            if(ACTION === 'CANCEL') {
+                    edcEvent.emit('affterCancel', {
+                    action: ACTION,
+                    data: ACTIVEDATA,
+                    response: response
+                })
+            }
         }
 
         if (_edcConnectType === 'MQTT') {
             Mqtt.publish(Mqtt.getResponseTopic(), JSON.stringify(response))
         } else {
-            // type =  MANUAL
+
         }
         savePayment(response)
         NProgress.done()
     }
-    addLog('[EDC][RESPONSE] EDC  ตอบกลับข้อมูลสถานะ: '+ (response.action || ''))
+    addLog('[EDC][RESPONSE] EDC ตอบกลับข้อมูลสถานะ: '+ (ACTION || ''))
 }
 
 function saveSetting() {
@@ -552,12 +513,16 @@ async function getPriceAmount(vn) {
         if (res.length > 0) {
             total = res[0].charge_total || 0
             setDetailVisit({
-                vn: _vn,
+                vn: txtVn.value,
                 date: currentDate,
-                fullname: _fullname,
-                pid: _pid,
+                fullname: EDCDATA.fullname,
+                pid: EDCDATA.pid,
                 time: res[0].time,
                 clinic: res[0].dep_name
+            })
+            setEdcData({
+                vn: txtVn.value,
+                amount: total
             })
         }
         payAmount.value = total
@@ -808,37 +773,37 @@ async function searchVnByHn(hn) {
             })
         }
 
-        _fullname = vns[0].title + vns[0].name + ' ' + vns[0].surname
-        _pid = vns[0].no_card
-        _vn = vns[0].vn
-        _hn = vns[0].hn
-
         txtVn.value = vns[0].vn // set default selected
         payAmount.value = vns[0].charge_total || 0
-
-        addLog(`Search by Hn:  ${_hn}, ${_fullname}, พบ: ${vns.length}  รายการ`)
-
+        const hn = vns[0].hn
+        const vn = vns[0].vn
+        const pid = vns[0].no_card
+        const fullname = vns[0].title + vns[0].name + ' ' + vns[0].surname
+        setEdcData({
+            vn: vn,
+            hn: hn,
+            fullname: fullname,
+            pid: pid,
+            time: vns[0].time,
+            clinic: vns[0].dep_name
+        })
         setDetailVisit({
-            vn: _vn,
+            vn: vn,
             date: currentDate,
-            fullname: _fullname,
-            pid: _pid,
+            fullname: fullname,
+            pid: pid,
             time: vns[0].time,
             clinic: vns[0].dep_name
         })
 
         txtVn.focus() // set focus select an
+        addLog(`Search by Hn:  ${hn}, ${fullname}, พบ: ${vns.length}  รายการ`)
     } else {
         const msg = `ค้นหาโดยใช้ Hn: ${hn} , ไม่พบผู้ป่วย`
         resetData()
         addLog(msg)
         setDetailVisit(false)
-        Swal.fire({
-            type: 'info',
-            title: 'ไม่พบรายการ',
-            text: msg,
-            timer: 2500
-        })
+        popupBox.info('ไม่พบรายการที่ค้นหา!')
     }
 }
 
@@ -863,17 +828,9 @@ async function updateStatus(edcId, status) {
 }
 
 function resetData() {
-    _hn = ''
-    _vn = ''
-    _pid = ''
-    _amount = 0
-    _fullname = ''
-    _rightID = ''
-
     txtVn.innerHTML = ''
     txtHn.value = ''
     payAmount.value = ''
-
     setDetailVisit(false)
     responseBuffer.length = 0
     disabledPaymentButton(false)
@@ -926,50 +883,54 @@ function stopMqtt() {
 
 function initEvents() {
     
-    edcEvent.on('beforePayment', (data) => {
+    edcEvent.on('beforePayment', (response) => {
         console.log('beforePayment')
-        console.table(data)
+        console.table(response)
         NProgress.start()
-        ACTION = data.action
-        setEdcData(data.data)
-        edcConnect.payment(data.data.amount,data.data.right_id)
+        ACTION = response.action
+        setEdcData(response.data)
+        edcConnect.payment(response.data.amount, response.data.right_id)
         popupBox.loading('กรุณารอซักครู่...กำลังเชื่อมต่อเครื่อง EDC')
     })
 
     edcEvent.on('beforeReprint', (data) => {
         console.log('beforeReprint',data)
+        console.table(data)
         ACTION = data.action
         ACTIVEDATA = data.data
         setEdcData(data.data)
+        edcConnect.reprint(data.data.trace)
+        NProgress.start()
+        popupBox.loading('กรุณารอซักครู่ กำลังเชื่อมต่อเครื่อง EDC...')
     })
 
     edcEvent.on('beforeCancel', (data) => {
         console.log('beforeCancel',data)
+        console.table(data)
         ACTION = data.action
         ACTIVEDATA = data.data
         setEdcData(data.data)
+        edcConnect.cancel(data.data.trace)
+        NProgress.start()
+        popupBox.loading('กรุณารอซักครู่ กำลังเชื่อมต่อเครื่อง EDC...')
     })
 
     edcEvent.on('affterPayment', (data) => {
         console.log('affterPayment',data)
-        NProgress.done()
     })
 
     edcEvent.on('affterReprint', (data) => {
         console.log('affterReprint',data)
-        NProgress.done()
     })
 
     edcEvent.on('affterCancel', (data) => {
         console.log('affterCancel',data)
-        updateStatus(data.id, 0)
-        NProgress.done()
+        updateStatus(data.data.id, 0)
     })
 
     edcEvent.on('affterTxnCancel', (data) => {
         console.log('affterTxnCancel',data)
         ACTION = data.action
-        NProgress.done()
     })
 }
 
