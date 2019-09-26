@@ -1,17 +1,34 @@
+const NProgress = require('nprogress')
 const moment = require('moment')
 const Swal = require('sweetalert2')
-const helper = require('./helper')
-const store = require('./store')
-const Db = require('./db')
-const Edc = require('./edc')
-const chart = require('./chart')
-const Mqtt = require('./mqtt')
-const NProgress = require('nprogress')
+const helper = require('./lib/helper')
+const store = require('./lib/store')
+const Db = require('./lib/db')
+const Edc = require('./lib/edc')
+const chart = require('./lib/chart')
+const Mqtt = require('./lib/mqtt')
+const popupBox = require('./lib/popupBox')
+
+var EventEmitter = require('events');
 
 // **************************************************************************
 // ============================= Form =======================================
 // **************************************************************************
 
+var ACTION = 'PAYMENT'
+var STOREDATA = []
+var ACTIVEDATA = []
+var EDCDATA = {
+    action: '',
+    hn: '',
+    vn: '',
+    pid: '',
+    right_id: '',
+    amount: '',
+    fullname: ''
+}
+
+var edcEvent = new EventEmitter()
 var isConnection = false
 var settingData = {}
 var conn = {}
@@ -20,18 +37,8 @@ var responseBuffer = []
 var edcConnect = undefined
 var dataTable = {}
 var approveData = []
-var ACTION = 'PAYMENT'
-var STOREDATA = []
-
-var currentDate = moment().locale('th').format('DD MMM') + ' ' + (+moment().locale('th').format('YYYY') + 543)
-
-var _amount = 0
-var _pid = ''
-var _hn = ''
-var _vn = ''
-var _rightID = ''
-var _fullname = ''
 var _edcConnectType = 'MANUAL'
+var currentDate = moment().locale('th').format('DD MMM') + ' ' + (+moment().locale('th').format('YYYY') + 543)
 
 var txtLogs = document.getElementById('txtLogs')
 
@@ -74,6 +81,8 @@ var btnConnect = document.getElementById('btnConnect')
 var btnConnectPayment = document.getElementById('btnConnectPayment')
 var btnCancel = document.getElementById('btnCancel')
 
+
+
 // **************************************************************************
 // ========================= EventListener ==================================
 // **************************************************************************
@@ -106,12 +115,7 @@ document.getElementById('saveSetting').addEventListener('click', (e) => {
     initFormData()
     initDb()
     if (isConnection) {
-        Swal.fire({
-            type: 'success',
-            title: 'บันทึกการตั้งค่าเสร็จเรียบร้อย.',
-            showConfirmButton: false,
-            timer: 1000
-        })
+        popupBox.success('บันทึกการตั้งค่าเสร็จเรียบร้อย.')
         reloadData()
     } else {
         checkMysqlIsConnect()
@@ -160,7 +164,7 @@ btnPay.addEventListener('click', (e) => {
             hn: txtHn.value,
             vn: txtVn.value,
             pid: _pid,
-            rightId: txtRight.value,
+            right_id: +txtRight.value,
             amount: payAmount.value,
             fullname: _fullname
         })
@@ -187,18 +191,18 @@ btnPay.addEventListener('click', (e) => {
 // **************************************************************************
 
 async function addEventOnClickOfTable() {
+    
     const buttonsCancel = document
         .getElementById('table_id')
         .getElementsByClassName('btnActionCancel')
+
     for (const key in buttonsCancel) {
         if (buttonsCancel.hasOwnProperty(key)) {
             const element = buttonsCancel[key]
             element.addEventListener('click', e => {
-                ACTION = 'CANCEL'
-                const trace = e.srcElement.getAttribute('data-trace')
-                const edcId = e.srcElement.getAttribute('data-edc-id')
-                const status = e.srcElement.getAttribute('data-status')
-                console.log('Cancel', trace, edcId, status)
+                const index = e.srcElement.getAttribute('data-index')
+                const data = STOREDATA[index]
+                confirmCancel(data)
                 e.preventDefault()
             })
         }
@@ -212,7 +216,6 @@ async function addEventOnClickOfTable() {
         if (buttonsReprint.hasOwnProperty(key)) {
             const element = buttonsReprint[key]
             element.addEventListener('click', e => {
-                ACTION = 'REPRINT'
                 const index = e.srcElement.getAttribute('data-index')
                 const data = STOREDATA[index]
                 confirmReprint(data)
@@ -238,37 +241,23 @@ function confirmReprint(data) {
     })
 }
 
-function onSendRequestToReprint(data) {
-    _hn = data.hn
-    _vn = data.vn
-    _pid = data.pid
-    _rightID = data.right_id
-    _amount = data.amount
-    _fullname = data.fullname
-    console.log(edcConnect)
-    if(edcConnect.isConnect === false){
-        Swal.fire({
-            type: 'error',
-            title: 'Error',
-            text:
-                'ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณาตรวจสอบสาย usb หรือตั้งค่าเลือกเครื่อง edc ใหม่'
-        })
-    } else {
-        edcConnect.reprint(data.trace)
-        NProgress.start()
-        Swal.fire({
-            title: 'กรุณารอซักครู่ กำลังเชื่อมต่อเครื่อง EDC...',
-            showConfirmButton: false,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            // timer: 3000,
-            onBeforeOpen: () => {
-                Swal.showLoading()
-            }
-        })
-    }
-    
+function confirmCancel(data) {
+    Swal.fire({
+        title: 'ยกเลิกรายการชำระเงิน?',
+        text: 'คุณต้องการที่จะยกเลิกรายการใช่หรือไม่.',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, reset it!'
+    }).then(result => {
+        if (result.value) {
+           onSendRequestToCancel(data)
+        }
+    })
 }
+
+
 
 function initFormData() {
     settingData = store.getSetting()
@@ -296,15 +285,12 @@ function addLog(msg) {
     txtLogs.scrollTop = txtLogs.scrollHeight
 }
 
-async function renderEdcPorts() {
-    const ports = await Edc.getEdcSerialport()
-    helper.buildHtmlOptions('edcPort', ports)
-}
+
 
 function resetSetting() {
     Swal.fire({
-        title: 'Are you sure?',
-        text: 'You want to reset this setting.',
+        title: 'ลบข้อมูลการตั้งค่า?',
+        text: 'คุณต้องการที่จะลบข้อมูลการตั้งค่าทั้งหมด ใช่หรือไม่.',
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
@@ -317,7 +303,7 @@ function resetSetting() {
             setTimeout(() => {
                 initFormData()
             }, 1000)
-            Swal.fire('Success!', 'Your setting has been empty.', 'success')
+            Swal.fire('สำเร็จ!', 'คุณได้ทำการลบข้อการตั้งค่าเสร็จเรียบร้อย.', 'success')
         }
     })
 }
@@ -351,8 +337,8 @@ function edcStartConnect() {
         edcDevince.on('error', onError)
         edcDevince.on('close', onClose)
         edcDevince.on('data', onData)
+
     } catch (error) {
-        console.log(error.message)
         Swal.fire({
             type: 'error',
             title: 'Error',
@@ -362,27 +348,70 @@ function edcStartConnect() {
     }
 }
 
-function onSendRequestToPayment(data = { hn, vn, pid, amount, fullname, rightId }) {
-    _hn = data.hn
-    _vn = data.hn
-    _pid = data.pid
-    _rightID = data.rightId
-    _amount = parseFloat(data.amount).toFixed(2)
-    _fullname = data.fullname
-
-    edcConnect.payment(_amount)
-    
-    NProgress.start()
-    Swal.fire({
-        title: 'กรุณารอซักครู่ กำลังเชื่อมต่อเครื่อง EDC...',
-        showConfirmButton: false,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        // timer: 3000,
-        onBeforeOpen: () => {
-            Swal.showLoading()
-        }
+function onSendRequestToPayment(data = { hn, vn, pid, amount, fullname, right_id }) {
+    edcEvent.emit('beforePayment', {
+        action: 'PAYMENT',
+        data: data
     })
+}
+
+function onSendRequestToCancel(data) {
+    edcEvent.emit('beforeCancel', {
+        action: 'CANCEL',
+        data: data
+    })
+
+    if(edcConnect.isConnect === false){
+        Swal.fire({
+            type: 'error',
+            title: 'Error',
+            text:
+                'ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณาตรวจสอบสาย usb หรือตั้งค่าเลือกเครื่อง edc ใหม่'
+        })
+    } else {
+        edcConnect.cancel(data.trace)
+        NProgress.start()
+        Swal.fire({
+            title: 'กรุณารอซักครู่ กำลังเชื่อมต่อเครื่อง EDC...',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            // timer: 3000,
+            onBeforeOpen: () => {
+                Swal.showLoading()
+            }
+        })
+    }
+    
+}
+
+function onSendRequestToReprint(data) {
+    edcEvent.emit('beforeReprint', {
+        action: 'REPRINT',
+        data: data
+    })
+
+    if(edcConnect.isConnect === false){
+        Swal.fire({
+            type: 'error',
+            title: 'Error',
+            text:
+                'ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณาตรวจสอบสาย usb หรือตั้งค่าเลือกเครื่อง edc ใหม่'
+        })
+    } else {
+        edcConnect.reprint(data.trace)
+        NProgress.start()
+        Swal.fire({
+            title: 'กรุณารอซักครู่ กำลังเชื่อมต่อเครื่อง EDC...',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            // timer: 3000,
+            onBeforeOpen: () => {
+                Swal.showLoading()
+            }
+        })
+    }
 }
 
 function onOpen() {
@@ -428,24 +457,25 @@ function onClose() {
 }
 
 function onData(data) {
-    //const buffer = new Buffer(data)
-    const buffer = Buffer.from(data)
-    console.log('response buffer=', buffer.toString())
-    disabledPaymentButton(true)
+
     const response = edcConnect.checkResponseBuffer(data)
     responseBuffer.push(response)
+    disabledPaymentButton(true)
 
+    const buffer = Buffer.from(data)
+    console.log('response buffer=', buffer.toString())
+    
     if (responseBuffer.length === 2) {
         if (response.action === 'TXN CANCEL') {
-            addLog('[EDC][TXN CANCEL] กดยกเลิกระหว่างทำรายการที่ตัวเครื่อง edc')
-            Swal.fire({
-                type: 'info',
-                title: 'รายการนี้ถูกยกเลิกระหว่างทำรายการ กรุณารอซักครู่...',
-                showConfirmButton: false,
-                timer: 2300
+            edcEvent.emit('affterTxnCancel', {
+                action: 'TXNCANCEL',
+                data: data
             })
+            addLog('[EDC][TXN CANCEL] กดยกเลิกระหว่างทำรายการที่ตัวเครื่อง edc')
+            popupBox.loading('รายการนี้ถูกยกเลิกระหว่างทำรายการ กรุณารอซักครู่...')
         }
     }
+
     if (responseBuffer.length === 4) {
         if (response.action === 'TXN CANCEL') {
             Swal.fire({
@@ -464,7 +494,20 @@ function onData(data) {
                 timer: 2000
             })
         }
-        
+
+        if (ACTION === 'CANCEL') {
+            edcEvent.emit('cancel',{
+                action: ACTION,
+                data: response
+            })
+            Swal.fire({
+                type: 'success',
+                title: 'ยกเลิกรายการชำระเงินเสร็จเรียบร้อย',
+                showConfirmButton: false,
+                timer: 2000
+            })
+        }
+
         if (_edcConnectType === 'MQTT') {
             Mqtt.publish(Mqtt.getResponseTopic(), JSON.stringify(response))
         } else {
@@ -625,6 +668,37 @@ async function getEdcApproveToday() {
     return response
 }
 
+async function savePayment(data = { app_code, trace, action }) {
+    const amount = parseFloat(EDCDATA.amount).toFixed(2)
+    let status = await conn.saveEdcApprove({
+        approve_code: data.app_code,
+        trace: data.trace,
+        amount: amount,
+        datetime: moment().format('YYYY-MM-DD HH:mm:ss'),
+        pid: EDCDATA.pid,
+        edc_id: settingData.edc.location,
+        hn: EDCDATA.hn,
+        vn: EDCDATA.vn,
+        fullname: EDCDATA.fullname,
+        right_id: EDCDATA.right_id,
+        status: data.action === 'TXN CANCEL' ? 0 : 1,
+        action: data.action,
+        response_data: JSON.stringify(data),
+        updated_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+        type: ACTION
+    })
+    reloadData()
+    resetData()
+}
+
+function renderAnimationBox(element, value) {
+    element.style.animation = 'none'
+    // element.offsetHeight
+    element.style.animation = null
+    element.className = 'swing-in-top-fwd'
+    element.innerHTML = value
+}
+
 async function renderEdcList() {
     const response = await getEdcApproveToday()
     STOREDATA = response;
@@ -635,6 +709,7 @@ async function renderEdcList() {
         {code: 'CANCEL', name: 'ยกเลิกรายการ'},
         {code: 'REPRINT', name: 'พิมพ์ซ้ำ'}
     ]
+
     approveData = response.map((value, index) => {
         const buttonCancelTemplate = `<button 
         data-index="${index}"
@@ -673,37 +748,6 @@ async function renderEdcList() {
     addEventOnClickOfTable()
 }
 
-async function savePayment(data = { app_code, trace, action }) {
-    const amount = parseFloat(_amount).toFixed(2)
-    let status = await conn.saveEdcApprove({
-        approve_code: data.app_code,
-        trace: data.trace,
-        amount: amount,
-        datetime: moment().format('YYYY-MM-DD HH:mm:ss'),
-        pid: _pid,
-        edc_id: settingData.edc.location,
-        hn: _hn,
-        vn: _vn,
-        fullname: _fullname,
-        right_id: _rightID,
-        status: data.action === 'TXN CANCEL' ? 0 : 1,
-        action: data.action,
-        response_data: JSON.stringify(data),
-        updated_at: moment().format('YYYY-MM-DD HH:mm:ss'),
-        type: ACTION
-    })
-    reloadData()
-    resetData()
-}
-
-function renderAnimationBox(element, value) {
-    element.style.animation = 'none'
-    // element.offsetHeight
-    element.style.animation = null
-    element.className = 'swing-in-top-fwd'
-    element.innerHTML = value
-}
-
 async function renderEdcLocations() {
     const data = await conn.getEdcLocations()
     const array = helper.map(data, 'edc_id', 'location_name')
@@ -716,16 +760,13 @@ async function renderEdcRoles() {
     helper.buildHtmlOptions('txtRight', array)
 }
 
-async function searchVnByHn(hn) {
-    setDetailVisit({
-        vn: '',
-        date: '',
-        time: '',
-        fullname: '',
-        pid: '',
-        clinic: ''
-    })
+async function renderEdcPorts() {
+    const ports = await Edc.getEdcSerialport()
+    helper.buildHtmlOptions('edcPort', ports)
+}
 
+async function searchVnByHn(hn) {
+    setDetailVisit(false)
     let vnIsApprove = []
     let isApproveVns = []
     let vns = []
@@ -791,14 +832,7 @@ async function searchVnByHn(hn) {
         const msg = `ค้นหาโดยใช้ Hn: ${hn} , ไม่พบผู้ป่วย`
         resetData()
         addLog(msg)
-        setDetailVisit({
-            vn: '',
-            date: '',
-            time: '',
-            fullname: '',
-            pid: '',
-            clinic: ''
-        })
+        setDetailVisit(false)
         Swal.fire({
             type: 'info',
             title: 'ไม่พบรายการ',
@@ -809,17 +843,17 @@ async function searchVnByHn(hn) {
 }
 
 function setDetailVisit(data = { vn, date, fullname, pid, time, clinic }) {
-    txtLabelVn.value = data.vn
-    txtLabelDate.value = data.date
-    txtLabelFullname.value = data.fullname
-    txtLabelPID.value = data.pid
-    txtLabelTime.value = data.time
-    txtLabelClinic.value = data.clinic
+    txtLabelVn.value = data===false ? '' : data.vn
+    txtLabelDate.value = data===false ? '' : data.date
+    txtLabelFullname.value = data===false ? '' : data.fullname
+    txtLabelPID.value = data===false ? '' : data.pid
+    txtLabelTime.value = data===false ? '' : data.time
+    txtLabelClinic.value = data===false ? '' : data.clinic
 }
 
 async function updateStatus(edcId, status) {
     try {
-        await conn.updateStatus(edcId, { status: status === 1 ? '0' : '1' })
+        await conn.updateStatus(edcId, { status: status})
     } catch (error) {
         console.log(error.message)
         addLog('Error: ' + error.message)
@@ -840,14 +874,7 @@ function resetData() {
     txtHn.value = ''
     payAmount.value = ''
 
-    setDetailVisit({
-        vn: '',
-        date: '',
-        time: '',
-        fullname: '',
-        pid: '',
-        clinic: ''
-    })
+    setDetailVisit(false)
     responseBuffer.length = 0
     disabledPaymentButton(false)
     txtHn.focus()
@@ -869,26 +896,86 @@ function startMqtt() {
         username: settingData.mqtt.host,
         password: settingData.mqtt.host
     })
+
+    let client = Mqtt.getClient()
+
     addLog('[MQTT] MQTT is connect.')
 
     Mqtt.event.on('request', (data) => {
         addLog('[MQTT][REQUEST] ส่งข้อมูลเชื่อมต่อเครื่อง EDC เพื่อชำระเงิน')
-        resetData()
         onSendRequestToPayment(data)
     })
 
     Mqtt.event.on('response', (data) => {
         addLog('[MQTT][RESPONSE] MQTT ตอบกลับข้อมูล')
-        // Swal.close()
-        //addLog('Response from edc.')
-       // console.log('Event response payment', data)
        console.table(data)
+    })
+
+    client.on('offline', () => {
+        addLog('[MQTT] MQTT Offline')
+    })
+    client.on('close', () => {
+        addLog('[MQTT] MQTT Close')
     })
 }
 
 function stopMqtt() {
-    addLog('[MQTT][STOP] MQTT หยุดการเชื่อมต่อ')
+    addLog('[MQTT] หยุดการเชื่อมต่อ MQTT')
     Mqtt.stop()
+}
+
+function initEvents() {
+    
+    edcEvent.on('beforePayment', (data) => {
+        console.log('beforePayment')
+        console.table(data)
+        NProgress.start()
+        ACTION = data.action
+        setEdcData(data.data)
+        edcConnect.payment(data.data.amount,data.data.right_id)
+        popupBox.loading('กรุณารอซักครู่...กำลังเชื่อมต่อเครื่อง EDC')
+    })
+
+    edcEvent.on('beforeReprint', (data) => {
+        console.log('beforeReprint',data)
+        ACTION = data.action
+        ACTIVEDATA = data.data
+        setEdcData(data.data)
+    })
+
+    edcEvent.on('beforeCancel', (data) => {
+        console.log('beforeCancel',data)
+        ACTION = data.action
+        ACTIVEDATA = data.data
+        setEdcData(data.data)
+    })
+
+    edcEvent.on('affterPayment', (data) => {
+        console.log('affterPayment',data)
+        NProgress.done()
+    })
+
+    edcEvent.on('affterReprint', (data) => {
+        console.log('affterReprint',data)
+        NProgress.done()
+    })
+
+    edcEvent.on('affterCancel', (data) => {
+        console.log('affterCancel',data)
+        updateStatus(data.id, 0)
+        NProgress.done()
+    })
+
+    edcEvent.on('affterTxnCancel', (data) => {
+        console.log('affterTxnCancel',data)
+        ACTION = data.action
+        NProgress.done()
+    })
+}
+
+
+function setEdcData(data) {
+    return Object.assign(EDCDATA, data)
 }
 
 // **************************************************************************
@@ -903,6 +990,8 @@ async function init() {
     renderEdcPorts()
     helper.setActiveMenu('menus', 'menu', 'active')
     helper.setActivePage('menus', 'menu', 'pageActive')
+    initEvents()
 }
 
 init()
+

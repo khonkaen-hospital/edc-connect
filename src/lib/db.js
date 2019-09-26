@@ -68,7 +68,7 @@ class Db {
         return await this.knex('edc_logs').insert(data);
     }
 
-    async  getEdcRoles() {
+    async getEdcRoles() {
         return await this.knex('edc_roles').where({status:1}).orderBy('order','ASC');
     }
 
@@ -81,7 +81,7 @@ class Db {
     async getEdcApproveByDate(edcId, date) {
         return await this.knex('edc_approve')
         .whereRaw('date(datetime) = ? and edc_id = ?',[date, edcId])
-        .orderBy('datetime','DESC');
+        .orderBy('id','DESC');
     }
 
     async getSummary(edcId, date) {

@@ -85,7 +85,7 @@ class Edc extends EventEmitter {
       this.emit('error', 'ไม่สามารถเชื่อมต่อกับเครื่อง EDC ได้');
       return;
     }
-    var buffer = new Buffer(msg);
+    var buffer = Buffer.from(msg);
     console.log('buffer send=', buffer.toString());
 
     this.port.write(buffer, function(err) {
@@ -209,28 +209,6 @@ class Edc extends EventEmitter {
     ]
   }
 
-  static genPaymentData2(price,cardNo,type=12) {
-    let intPrice     = price.substring(0, price.indexOf(".")).padStart(10, "0").split('', 10).map(value => parseInt('0x3'.concat(value)));
-    let decimalPrice = price.substring(price.indexOf(".") + 1).split('', 2).map(value => parseInt('0x3'.concat(value)));
-    let cardHex = cardNo.padStart(13, "0").split('', 13).map(value => parseInt('0x3'.concat(value)));
-    console.log(cardHex);
-    return [
-        ...STRUCTURE_KEY.stx, 
-        ...STRUCTURE_KEY.lenght, 
-        ...STRUCTURE_KEY.reverseForFurfure, 
-        ...Edc.genPresentationHeaderSale(type), 
-
-        ...STRUCTURE_KEY.fieldTypeSale, 
-        ...intPrice, 
-        ...decimalPrice,
-
-        ...STRUCTURE_KEY.fieldTypeSaleChildCard, 
-        ...cardHex,
-
-        ...STRUCTURE_KEY.etxLrc, 
-    ]
-  }
-
  static genCancelData(code) {
     return [
         ...STRUCTURE_KEY.stx, 
@@ -257,11 +235,6 @@ class Edc extends EventEmitter {
 
  payment(amount, type=11) {
    let msg = Edc.genPaymentData(amount, type)
-   this.sendMessage(msg)
- }
-
- payment2(amount, cardNo, type=12) {
-   let msg = Edc.genPaymentData2(amount, cardNo, type)
    this.sendMessage(msg)
  }
 
