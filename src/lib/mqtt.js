@@ -2,6 +2,7 @@ const mqtt = require("mqtt");
 var EventEmitter = require('events').EventEmitter;
 
 var client;
+var isConnect = false;
 var REQUEST_TOPIC  = '';
 var RESPONSE_TOPIC = '';
 var evm = new EventEmitter();
@@ -17,6 +18,7 @@ function start(option = { edcid, host, username, password }) {
   });
 
   client.on("connect", function() {
+    isConnect =  true
     console.log("Mqtt connect...", client);
     log('Mqtt Connect')
     client.subscribe(REQUEST_TOPIC, function(err, data) {
@@ -33,9 +35,9 @@ function start(option = { edcid, host, username, password }) {
     console.log("On message, topic=", topic);
     if(message){
         try {
-             json = JSON.parse(message);
+          json = JSON.parse(message);
         } catch (error) {
-            console.log(error.message)
+          console.log(error.message)
         }
     }
     if(REQUEST_TOPIC == topic && message){
@@ -48,22 +50,26 @@ function start(option = { edcid, host, username, password }) {
   });
 
   client.on("close", function() {
+    isConnect =  false
     console.log("On close");
     log('Mqtt close')
   });
 
   client.on("error", function(err) {
+    isConnect =  false
     console.log("On error",error.message);
     log('Mqtt Error')
   });
 
   client.on("offline", function() {
+    isConnect =  false
     console.log("On offline");
     log('MQTT Offline')
   });
 }
 
 function stop() {
+    isConnect =  false
     try {
         client.unsubscribe(REQUEST_TOPIC);
         client.unsubscribe(RESPONSE_TOPIC);
@@ -75,12 +81,23 @@ function stop() {
 }
 
 function publish(topic, message) {
-    console.log('publish',topic);
-    client.publish(topic, message)
+    if(isConnect) { 
+      console.log('publish', topic);
+      client.publish(topic, message)
+      return true;
+    } else {
+      log('MQTT is not connected')
+      console.log('MQTT is not connected');
+      return false;
+    }
 }
 
 function subscribe(topic, calback=()=> {}) {
+  if(isConnect) { 
     client.subscribe(topic, calback)
+  } else {
+    log('MQTT is not connected')
+  }
 }
 
 function setResponseTopic(edcid){
@@ -115,5 +132,6 @@ module.exports = {
   publish: publish,
   subscribe: subscribe,
   event: evm,
-  getClient: getClient
+  getClient: getClient,
+  isConnect: isConnect
 };

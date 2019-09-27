@@ -94,8 +94,12 @@ document.getElementById('btnMqttStop').addEventListener('click', (e) => {
     stopMqtt()
 })
 document.getElementById('btnMqttTestPayment').addEventListener('click', (e) => {
-    Mqtt.publish(txtTopic.value,txtData.value)
-    popupBox.info('ส่งข้อมูลเรียบร้อย')
+    if(Mqtt.publish(txtTopic.value,txtData.value)){
+        popupBox.info('ส่งข้อมูลเรียบร้อย')
+    } else {
+        popupBox.info('กรุณาเชื่อมต่อ MQTT ')
+    }
+    
 })
 
 
@@ -414,6 +418,7 @@ function onData(data) {
     if (responseBuffer.length === 2) {
         if (response.action === 'TXN CANCEL') {
             edcEvent.emit('affterTxnCancel', {
+                action: 'TXNCANCEL',
                 data: EDCDATA,
                 response: response
             })
@@ -424,33 +429,14 @@ function onData(data) {
 
     if (responseBuffer.length === 4) {
 
-        if (ACTION === 'PAYMENT') {
-            popupBox.success('ชำระเงินเสร็จเรียบร้อย.')
-            edcEvent.emit('affterPayment', {
-                action: ACTION,
-                data: EDCDATA,
-                response: response
-            })
-        } else if (ACTION === 'REPRINT') {
-            popupBox.success('พิมพ์ซำ้รายการเสร็จเรียบร้อย.')
-            edcEvent.emit('affterReprint', {
+        checkResponseMessage(ACTION, ACTIVEDATA, response)
+
+        if (_edcConnectType === 'MQTT') {
+            Mqtt.publish(Mqtt.getResponseTopic(), JSON.stringify({
                 action: ACTION,
                 data: ACTIVEDATA,
                 response: response
-            })
-        } else if (ACTION === 'CANCEL' || ACTION === 'TXNCANCEL' ) {
-            popupBox.success('ยกเลิกรายการเสร็จเรียบร้อย.')
-            if(ACTION === 'CANCEL') {
-                    edcEvent.emit('affterCancel', {
-                    action: ACTION,
-                    data: ACTIVEDATA,
-                    response: response
-                })
-            }
-        }
-
-        if (_edcConnectType === 'MQTT') {
-            Mqtt.publish(Mqtt.getResponseTopic(), JSON.stringify(response))
+            }))
         } else {
 
         }
@@ -458,6 +444,38 @@ function onData(data) {
         NProgress.done()
     }
     addLog('[EDC][RESPONSE] EDC ตอบกลับข้อมูลสถานะ: '+ (ACTION || ''))
+}
+
+function checkResponseMessage(actionName, data, response){
+    if (actionName === 'PAYMENT') {
+        popupBox.success('ชำระเงินเสร็จเรียบร้อย.')
+        edcEvent.emit('affterPayment', {
+            action: actionName,
+            data: data,
+            response: response
+        })
+    } else if (actionName === 'REPRINT') {
+        popupBox.success('พิมพ์ซำ้รายการเสร็จเรียบร้อย.')
+        edcEvent.emit('affterReprint', {
+            action: actionName,
+            data: data,
+            response: response
+        })
+    } else if (actionName === 'CANCEL' ) {
+        popupBox.success('ยกเลิกรายการเสร็จเรียบร้อย.')
+        edcEvent.emit('affterCancel', {
+            action: actionName,
+            data: data,
+            response: response
+        })
+    } else if (actionName === 'TXNCANCEL' ) {
+        popupBox.success('ยกเลิกรายการเสร็จเรียบร้อย.')
+        edcEvent.emit('affterTxnCancel', {
+            action: actionName,
+            data: data,
+            response: response
+        })
+    }
 }
 
 function saveSetting() {
