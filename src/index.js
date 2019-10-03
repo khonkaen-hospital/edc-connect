@@ -21,15 +21,15 @@ const createWindow = () => {
     webPreferences: {
         nodeIntegration: true
     },
-    width: 800,
-    height: 500,
+    width: 1024,
+    height: 600,
   });
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  //mainWindow.webContents.openDevTools();
 
   // Emitted when the window is closed.
   mainWindow.on('closed', () => {
