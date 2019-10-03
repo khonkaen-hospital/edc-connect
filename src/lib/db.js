@@ -86,10 +86,10 @@ class Db {
     async getSummary(edcId, date) {
         return await this.knex('edc_approve')
         .select(
-        this.knex.raw('sum(if(type=\'PAYMENT\',amount,0)) as amount'),
-        this.knex.raw('count(id) as total'),
-        this.knex.raw('sum(if(action=\'APPROVED\',1,0)) as approve'),
-        this.knex.raw('sum(if(action=\'APPROVED\',0,1)) as cancel'))
+        this.knex.raw('sum(if((status=1 && type=\'PAYMENT\'),amount,0)) as amount'),
+        this.knex.raw('sum(if((type=\'PAYMENT\' && status in (0,1)),1,0)) total'),
+        this.knex.raw('sum(if((status=1 && type=\'PAYMENT\'),1,0)) as approve'),
+        this.knex.raw('sum(if((status=1 && type=\'CANCEL\'),1,0)) as cancel'))
         .whereRaw('date(datetime) = ? and edc_id = ?',[date, edcId]);
     }
     
