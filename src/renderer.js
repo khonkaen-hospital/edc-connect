@@ -99,7 +99,6 @@ document.getElementById('btnMqttTestPayment').addEventListener('click', (e) => {
     } else {
         popupBox.info('กรุณาเชื่อมต่อ MQTT ')
     }
-    
 })
 
 
