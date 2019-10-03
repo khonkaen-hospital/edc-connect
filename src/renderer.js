@@ -27,7 +27,7 @@ var EDCDATA = {
     amount: '',
     fullname: ''
 }
-
+var isApproveVns = []
 var edcEvent = new EventEmitter()
 var isConnection = false
 var settingData = {}
@@ -83,6 +83,7 @@ var btnCancel = document.getElementById('btnCancel')
 
 var txtTopic = document.getElementById('txtTopic')
 var txtData = document.getElementById('txtData')
+var boxIsPayment = document.getElementById('boxIsPayment')
 // **************************************************************************
 // ========================= EventListener ==================================
 // **************************************************************************
@@ -151,6 +152,13 @@ txtVn.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         e.preventDefault()
         const vn = e.srcElement.value
+        if(isApproveVns.includes(vn)){
+            btnPay.disabled = true;
+            boxIsPayment.style.display = 'block'
+        }else {
+            btnPay.disabled = false
+            boxIsPayment.style.display = 'none'
+        }
         getPriceAmount(vn)
         txtRight.focus()
     }
@@ -159,6 +167,13 @@ txtVn.addEventListener('keydown', (e) => {
 txtVn.addEventListener('click', (e) => {
     e.preventDefault()
     const vn = e.srcElement.value
+    if(e.srcElement.dataset.ispayment==1){
+        btnPay.disabled = true;
+        boxIsPayment.style.display = 'block'
+    } else {
+        btnPay.disabled = false;
+        boxIsPayment.style.display = 'none'
+    }
     if (vn) {
         getPriceAmount(vn)
         txtRight.focus()
@@ -173,6 +188,7 @@ txtRight.addEventListener('keydown', (e) => {
 })
 
 btnPay.addEventListener('click', (e) => {
+
     if (+payAmount.value > 0) {
         onSendRequestToPayment({
             hn: txtHn.value,
@@ -702,7 +718,7 @@ async function renderEdcPorts() {
 async function searchVnByHn(hn) {
     setDetailVisit(false)
     let vnIsApprove = []
-    let isApproveVns = []
+    isApproveVns.length = [];
     let vns = []
     try {
         vns = await conn.getVisitByHn(hn)
@@ -727,11 +743,16 @@ async function searchVnByHn(hn) {
 
             vns.map(v => {
                 v.isPayment = isApproveVns.includes(v.vn)
-                var opt = document.createElement('option')
+                let opt = document.createElement('option')
+                let dataIspayment =  document.createAttribute("data-ispayment"); 
                 if (v.isPayment) {
                     opt.disabled = true
-                    opt.style = 'font-weight:bold color:green text-decoration: line-through'
+                    dataIspayment.value = 1
+                    opt.style = 'font-weight:bold; color:green; text-decoration: line-through;'
+                }else {
+                    dataIspayment.value = 0
                 }
+                opt.setAttributeNode(dataIspayment); 
                 opt.appendChild(
                     document.createTextNode(
                         v.vn + ',ค่ารักษา: ' + (v.charge_total || 0) + ', ' + v.dep_name + ', ' + v.time
@@ -741,7 +762,13 @@ async function searchVnByHn(hn) {
                 txtVn.appendChild(opt)
             })
         }
-
+        if(vns[0].isPayment === true) {
+            btnPay.disabled = true
+            boxIsPayment.style.display = 'block'
+        }else {
+            btnPay.disabled = false
+            boxIsPayment.style.display = 'none'
+        }
         txtVn.value = vns[0].vn // set default selected
         payAmount.value = vns[0].charge_total || 0
         const hn = vns[0].hn
@@ -773,6 +800,9 @@ async function searchVnByHn(hn) {
         addLog(msg)
         setDetailVisit(false)
         popupBox.info('ไม่พบรายการที่ค้นหา!')
+        boxIsPayment.style.display = 'none'
+        btnPay.disabled = true;
+        
     }
 }
 

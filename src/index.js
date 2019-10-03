@@ -18,6 +18,7 @@ let mainWindow;
 const createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
+    //titleBarStyle: 'hiddenInset',
     webPreferences: {
         nodeIntegration: true
     },
@@ -30,6 +31,8 @@ const createWindow = () => {
 
   // Open the DevTools.
   //mainWindow.webContents.openDevTools();
+
+  mainWindow.setMenu(null);
 
   // Emitted when the window is closed.
   mainWindow.on('closed', () => {

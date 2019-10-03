@@ -53,11 +53,10 @@ class Db {
         .where('vn',vn);
     }
     
-
     async checkIsPayment(vn) {
         return await this.knex('edc_approve')
         .whereIn('vn', vn)
-        .whereRaw('date(datetime) = ? and status = 1',moment().format('YYYY-MM-DD'));
+        .whereRaw('date(datetime) = ? and status = 1 and type ="PAYMENT" ', moment().format('YYYY-MM-DD'));
     }
 
     async updateStatus(edc_id, data) {
