@@ -39,6 +39,8 @@ var dataTable = {}
 var approveData = []
 var _edcConnectType = 'MANUAL'
 var currentDate = moment().locale('th').format('DD MMM') + ' ' + (+moment().locale('th').format('YYYY') + 543)
+var TEMPHN = '';
+var TEMPVNS = '';
 
 var txtLogs = document.getElementById('txtLogs')
 
@@ -187,17 +189,34 @@ txtRight.addEventListener('keydown', (e) => {
     }
 })
 
+payAmount.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault()
+       if(e.srcElement.value > 0){
+           btnPay.focus()
+       } else {
+           txtHn.focus()
+       }
+    }
+})
+
 btnPay.addEventListener('click', (e) => {
 
     if (+payAmount.value > 0) {
-        onSendRequestToPayment({
-            hn: txtHn.value,
-            vn: txtVn.value,
-            pid: EDCDATA.pid,
-            right_id: +txtRight.value,
-            amount: payAmount.value,
-            fullname: EDCDATA.fullname
+        popupBox.confirm('คุณต้องการจ่ายเงินใช่หรือไม่?')
+        .then(confirm => {
+            if(confirm){
+                onSendRequestToPayment({
+                    hn: txtHn.value,
+                    vn: txtVn.value,
+                    pid: EDCDATA.pid,
+                    right_id: +txtRight.value,
+                    amount: payAmount.value,
+                    fullname: EDCDATA.fullname
+                })
+            }
         })
+       
     } else {
         addLog('จำนวนเงินทีจ่ายต้องมากกว่า 0 !')
         payAmount.focus()
@@ -463,7 +482,7 @@ function onData(data) {
 
 function checkResponseMessage(actionName, data, response){
     if (actionName === 'PAYMENT') {
-        popupBox.success('ชำระเงินเสร็จเรียบร้อย.')
+        popupBox.success('ชำระเงินเสร็จเรียบร้อย.',1500, txtHn)
         edcEvent.emit('affterPayment', {
             action: actionName,
             data: data,
@@ -629,7 +648,7 @@ async function getEdcApproveToday() {
 
 async function savePayment(data = { app_code, trace, action }) {
     const amount = parseFloat(EDCDATA.amount).toFixed(2)
-    let status = await conn.saveEdcApprove({
+    let response = await conn.saveEdcApprove({
         approve_code: data.app_code,
         trace: data.trace,
         amount: amount,
@@ -648,6 +667,15 @@ async function savePayment(data = { app_code, trace, action }) {
     })
     reloadData()
     resetData()
+    let status = await checkVisitsIsPaymentAll(TEMPHN);
+    console.log('on Set HN',status,TEMPHN)
+    if(!status){
+        txtHn.value = TEMPHN;
+    } 
+    setTimeout(() => {
+        txtHn.focus()
+    }, 1000);
+    
 }
 
 function renderAnimationBox(element, value) {
@@ -720,8 +748,23 @@ async function renderEdcPorts() {
     txtEdcPort.value = settingData.edc.port
 }
 
+ async function checkVisitsIsPaymentAll(hn){
+    let visits = await conn.getVisitByHn(hn)
+    let isPayment = [];
+    let isPaymentItems = [];
+    let approves = [];
+    if(visits.length>0) {
+        approves = visits.map(v => v.vn)
+        let res = await conn.checkIsPayment(approves)
+        isPaymentItems = res.map(v => v.vn)
+        console.log(approves,isPaymentItems)
+    }
+    return approves.length === isPaymentItems.length;
+}
+
 async function searchVnByHn(hn) {
     setDetailVisit(false)
+    TEMPHN = hn;
     let vnIsApprove = []
     isApproveVns.length = [];
     let vns = []
@@ -751,7 +794,7 @@ async function searchVnByHn(hn) {
                 let opt = document.createElement('option')
                 let dataIspayment =  document.createAttribute("data-ispayment"); 
                 if (v.isPayment) {
-                    opt.disabled = true
+                    //opt.disabled = true
                     dataIspayment.value = 1
                     opt.style = 'font-weight:bold; color:green; text-decoration: line-through;'
                 }else {
@@ -766,6 +809,7 @@ async function searchVnByHn(hn) {
                 opt.value = v.vn
                 txtVn.appendChild(opt)
             })
+            TEMPVNS = vns
         }
         if(vns[0].isPayment === true) {
             btnPay.disabled = true
@@ -839,6 +883,7 @@ function resetData() {
     responseBuffer.length = 0
     disabledPaymentButton(false)
     txtHn.focus()
+    console.log('on reset data')
 }
 
 function reloadData() {
@@ -909,7 +954,7 @@ function initEvents() {
     })
 
     edcEvent.on('beforeCancel', (data) => {
-        console.log('beforeCancel',data)
+        console.log('beforeCancel', data)
         console.table(data)
         ACTION = data.action
         ACTIVEDATA = data.data
@@ -920,7 +965,8 @@ function initEvents() {
     })
 
     edcEvent.on('affterPayment', (data) => {
-        console.log('affterPayment',data)
+        console.log('affterPayment',data,TEMPHN)
+        txtHn.focus()
     })
 
     edcEvent.on('affterReprint', (data) => {
@@ -938,6 +984,7 @@ function initEvents() {
         ACTION = data.action
     })
 }
+
 
 function setEdcData(data) {
     return Object.assign(EDCDATA, data)

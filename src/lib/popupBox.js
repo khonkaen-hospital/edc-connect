@@ -7,12 +7,17 @@ error =  (title, timer = 1500) => {
     })
 }
 
-success =  (title, timer = 1500) => {
+success =  (title, timer = 1500, focus=undefined) => {
     Swal.fire({
         type: 'success',
         title: title,
         showConfirmButton: false,
-        timer: timer
+        timer: timer,
+        onAfterClose: () => {
+            if(focus !== undefined){
+                focus.focus()
+            }
+        }
     })
 }
 

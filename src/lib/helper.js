@@ -42,7 +42,6 @@ function setActiveMenu(
         this.className += " " + activeClassName;
         let pageId = e.srcElement.getAttribute("data-page");
         if(pageId === 'payment-page') {
-          console.log('next',netxFocus)
           setTimeout(() => {
             netxFocus !== undefined ? netxFocus.focus() : '';
           }, 200);
