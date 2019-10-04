@@ -65,8 +65,8 @@ class DataStore extends Store {
         return this.settingData;
     }
 
-    saveSetting(data) {
-        this.set('settingData', data)
+    async saveSetting(data) {
+        await this.set('settingData', data)
     }
 }
 

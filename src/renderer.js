@@ -493,8 +493,9 @@ function checkResponseMessage(actionName, data, response){
     }
 }
 
-function saveSetting() {
-    store.saveSetting({
+async function saveSetting() {
+    console.log('savesetting');
+    await store.saveSetting({
         mqtt: {
             host: txtMqttHost.value,
             username: txtMqttUser.value,
@@ -516,6 +517,8 @@ function saveSetting() {
             databits: txtDataBits.value
         }
     })
+    console.log('port',txtEdcPort.value,'location:', txtEdcId.value)
+
     addLog('[SAVE SETTING] บันทึกข้อมูลการตั้งค่า')
 }
 
@@ -702,6 +705,7 @@ async function renderEdcLocations() {
     const data = await conn.getEdcLocations()
     const array = helper.map(data, 'edc_id', 'location_name')
     helper.buildHtmlOptions('edcId', array)
+    txtEdcId.value = +settingData.edc.location
 }
 
 async function renderEdcRoles() {
@@ -713,6 +717,7 @@ async function renderEdcRoles() {
 async function renderEdcPorts() {
     const ports = await Edc.getEdcSerialport()
     helper.buildHtmlOptions('edcPort', ports)
+    txtEdcPort.value = settingData.edc.port
 }
 
 async function searchVnByHn(hn) {
