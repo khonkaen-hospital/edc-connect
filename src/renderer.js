@@ -513,7 +513,6 @@ function checkResponseMessage(actionName, data, response){
 }
 
 async function saveSetting() {
-    console.log('savesetting');
     await store.saveSetting({
         mqtt: {
             host: txtMqttHost.value,
@@ -668,7 +667,6 @@ async function savePayment(data = { app_code, trace, action }) {
     reloadData()
     resetData()
     let status = await checkVisitsIsPaymentAll(TEMPHN);
-    console.log('on Set HN',status,TEMPHN)
     if(!status){
         txtHn.value = TEMPHN;
     } 
