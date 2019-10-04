@@ -23,14 +23,15 @@ buildHtmlOptions = (tagId, data = []) => {
 function setActiveMenu(
   containerId = "menus",
   className = "menu",
-  activeClassName = "active"
+  activeClassName = "active",
+  netxFocus = undefined
 ) {
   let menusContainer = document.getElementById(containerId);
   let menus = menusContainer.getElementsByClassName(className);
   for (const key in menus) {
     if (menus.hasOwnProperty(key)) {
       const element = menus[key];
-      element.addEventListener("click", function () {
+      element.addEventListener("click", function (e) {
         let current = menusContainer.getElementsByClassName(activeClassName);
         if (current.length == 1) {
           current[0].className = current[0].className.replace(
@@ -39,6 +40,13 @@ function setActiveMenu(
           );
         }
         this.className += " " + activeClassName;
+        let pageId = e.srcElement.getAttribute("data-page");
+        if(pageId === 'payment-page') {
+          console.log('next',netxFocus)
+          setTimeout(() => {
+            netxFocus !== undefined ? netxFocus.focus() : '';
+          }, 200);
+        }
       });
     }
   }

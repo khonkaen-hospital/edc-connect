@@ -948,7 +948,7 @@ async function init() {
     initDb()
     initEdc()
     renderEdcPorts()
-    helper.setActiveMenu('menus', 'menu', 'active')
+    helper.setActiveMenu('menus', 'menu', 'active', txtHn)
     helper.setActivePage('menus', 'menu', 'pageActive')
     initEvents()
 }
