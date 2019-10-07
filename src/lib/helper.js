@@ -86,7 +86,7 @@ function initDataTable(dataTableId = "#table_id") {
     dom: "Bflrtip",
     buttons: ["csv", "excel", "pdf"],
     paging: true,
-    pageLength: 15,
+    pageLength: 300,
     lengthChange: false,
     ordering: true,
     info: false,
