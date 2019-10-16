@@ -84,6 +84,7 @@
     "color": "^3.1.2",
     "datatables.net": "^1.10.19",
     "datatables.net-dt": "^1.10.19",
+    "electron-log": "^3.0.8",
     "electron-reload": "^1.5.0",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^5.0.0",
@@ -96,7 +97,8 @@
     "nprogress": "^0.2.0",
     "pikaday": "^1.8.0",
     "serialport": "^7.1.5",
-    "sweetalert2": "^8.17.1"
+    "sweetalert2": "^8.17.1",
+    "update-electron-app": "^1.5.0"
   },
   "devDependencies": {
     "electron-builder": "^21.2.0",
