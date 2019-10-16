@@ -1,3 +1,4 @@
+const { app } = require('electron').remote;
 const NProgress = require('nprogress')
 const moment = require('moment')
 const Pikaday = require('pikaday')
@@ -44,8 +45,9 @@ var TEMPHN = '';
 var TEMPVNS = '';
 
 var txtHnLabel = document.getElementById('txtHnLabel')
-txtHnLabel.innerHTML = 'วันที่ตรวจ (' + currentDate + ')';
+txtHnLabel.innerHTML = 'วันที่ตรวจ (' + currentDate + ')'
 var txtLogs = document.getElementById('txtLogs')
+var labelAbout = document.getElementById('labelAbout')
 
 var txtMqttHost = document.getElementById('txtMqttHost')
 var txtMqttUser = document.getElementById('txtMqttUser')
@@ -102,6 +104,10 @@ var picker = new Pikaday({
         weekdaysShort : ['อ.','จ.','อ.','พ.','พฤ.','ศ.','ส.']
     }
 });
+
+var appName = `${app.getName()} [v${app.getVersion()}]`
+document.title = appName
+labelAbout.innerHTML = appName + ', Copyright © Khon Kaen Hospital'
 
 // **************************************************************************
 // ========================= EventListener ==================================
