@@ -1,6 +1,11 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path')
 
+require('update-electron-app')({
+  repo: 'khonkaen-hospital/edc-connect',
+  updateInterval: '1 hour',
+  logger: require('electron-log')
+})
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require

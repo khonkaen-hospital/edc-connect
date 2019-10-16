@@ -12,12 +12,6 @@ const popupBox = require('./lib/popupBox')
 
 var EventEmitter = require('events');
 
-require('update-electron-app')({
-    repo: 'khonkaen-hospital/edc-connect',
-    updateInterval: '1 hour',
-    logger: require('electron-log')
-})
-
 // **************************************************************************
 // ============================= Form =======================================
 // **************************************************************************
