@@ -35,13 +35,11 @@
       "type": "distribution"
     },
     "win": {
-      "icon": "dist",
       "target": [
         "portable"
       ]
     },
     "linux": {
-      "icon": "dist",
       "target": [
         "AppImage"
       ]
