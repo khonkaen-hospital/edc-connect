@@ -1,8 +1,8 @@
 {
   "name": "edc-connect",
-  "productName": "edc-connect",
+  "productName": "EdcConnect",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "electron app connect edc",
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
@@ -11,6 +11,9 @@
     "publish": "electron-forge publish",
     "rebuild": "electron-rebuild -f -w serialport",
     "postinstall": "electron-builder install-app-deps",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "release": "electron-builder -p always",
     "lint": "echo \"No linting configured\""
   },
   "keywords": [],
@@ -19,6 +22,34 @@
     "email": "dixonsatit@gmail.com"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khonkaen-hospital/edc-connect.git"
+  },
+  "build": {
+    "appId": "com.kkh.edc-connect",
+    "productName": "EdcConnect",
+    "copyright": "Copyright © Khon Kaen Hospital",
+    "mac": {
+      "category": "public.app.kkh.edc-connect",
+      "type": "distribution"
+    },
+    "win": {
+      "icon": "dist",
+      "target": [
+        "portable"
+      ]
+    },
+    "linux": {
+      "icon": "dist",
+      "target": [
+        "AppImage"
+      ]
+    },
+    "publish": [
+      "github"
+    ]
+  },
   "config": {
     "forge": {
       "packagerConfig": {},
@@ -53,7 +84,6 @@
     "color": "^3.1.2",
     "datatables.net": "^1.10.19",
     "datatables.net-dt": "^1.10.19",
-    "electron-builder": "^21.2.0",
     "electron-reload": "^1.5.0",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^5.0.0",
@@ -69,6 +99,7 @@
     "sweetalert2": "^8.17.1"
   },
   "devDependencies": {
+    "electron-builder": "^21.2.0",
     "@electron-forge/cli": "6.0.0-beta.45",
     "@electron-forge/maker-deb": "6.0.0-beta.45",
     "@electron-forge/maker-rpm": "6.0.0-beta.45",

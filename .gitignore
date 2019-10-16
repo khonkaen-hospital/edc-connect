@@ -1,5 +1,6 @@
 #build
-release-builds/
+dist
+release-builds
 # Logs
 logs
 *.log
