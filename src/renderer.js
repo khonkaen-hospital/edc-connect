@@ -1,5 +1,6 @@
 const NProgress = require('nprogress')
 const moment = require('moment')
+const Pikaday = require('pikaday')
 const Swal = require('sweetalert2')
 const helper = require('./lib/helper')
 const store = require('./lib/store')
@@ -42,6 +43,8 @@ var currentDate = moment().locale('th').format('DD MMM') + ' ' + (+moment().loca
 var TEMPHN = '';
 var TEMPVNS = '';
 
+var txtHnLabel = document.getElementById('txtHnLabel')
+txtHnLabel.innerHTML = 'วันที่ตรวจ (' + currentDate + ')';
 var txtLogs = document.getElementById('txtLogs')
 
 var txtMqttHost = document.getElementById('txtMqttHost')
@@ -66,6 +69,7 @@ var boxAmount = document.getElementById('boxAmount')
 var boxTotal = document.getElementById('boxTotal')
 var boxApproveCancel = document.getElementById('boxApproveCancel')
 
+var txtDate = document.getElementById('txtDate')
 var txtHn = document.getElementById('txtHn')
 var txtVn = document.getElementById('txtVn')
 var txtRight = document.getElementById('txtRight')
@@ -86,6 +90,19 @@ var btnCancel = document.getElementById('btnCancel')
 var txtTopic = document.getElementById('txtTopic')
 var txtData = document.getElementById('txtData')
 var boxIsPayment = document.getElementById('boxIsPayment')
+txtDate.value = moment().format('YYYY-MM-DD');
+var picker = new Pikaday({ 
+    field: txtDate,
+    format: 'YYYY-MM-DD',
+    i18n: {
+        previousMonth : 'Previous Month',
+        nextMonth     : 'Next Month',
+        months        : ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'],
+        weekdays      : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+        weekdaysShort : ['อ.','จ.','อ.','พ.','พฤ.','ศ.','ส.']
+    }
+});
+
 // **************************************************************************
 // ========================= EventListener ==================================
 // **************************************************************************
@@ -569,6 +586,7 @@ async function getPriceAmount(vn) {
 
 function disabledPaymentButton(value) {
     btnPay.disabled = value
+    txtDate.disabled = value
     txtHn.disabled = value
     txtVn.disabled = value
     txtRight.disabled = value
@@ -762,12 +780,13 @@ async function renderEdcPorts() {
 
 async function searchVnByHn(hn) {
     setDetailVisit(false)
+
     TEMPHN = hn;
     let vnIsApprove = []
     isApproveVns.length = [];
     let vns = []
     try {
-        vns = await conn.getVisitByHn(hn)
+        vns = await conn.getVisitByHn(hn,txtDate.value)
     } catch (error) {
         addLog('Error: ' + error.message)
         return

@@ -35,10 +35,13 @@ class Db {
         });
     }
 
-    async getVisitByHn(hn) {
+    async getVisitByHn(hn, curentDate = undefined) {
+        if(curentDate == undefined) {
+            curentDate = moment().format('YYYY-MM-DD')
+        }
         return await this.knex(this.visitTableName)
         .where('hn', hn)
-        .where('date',moment().format('YYYY-MM-DD')) //cureent date
+        .where('date',curentDate) //cureent date
         .groupBy('vn')
         .orderBy('time','DESC');
     }

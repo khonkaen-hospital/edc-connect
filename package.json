@@ -10,6 +10,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "rebuild": "electron-rebuild -f -w serialport",
+    "postinstall": "electron-builder install-app-deps",
     "lint": "echo \"No linting configured\""
   },
   "keywords": [],
@@ -63,6 +64,7 @@
     "mqtt": "^3.0.0",
     "mysql": "^2.17.1",
     "nprogress": "^0.2.0",
+    "pikaday": "^1.8.0",
     "serialport": "^7.1.5",
     "sweetalert2": "^8.17.1"
   },

@@ -3,11 +3,13 @@
   <head>
     <meta charset="UTF-8">
     <title>EDC Connect [V 1.0.0]</title>
-    
+     <link rel="stylesheet" href="../node_modules/pikaday/css/pikaday.css" />
     <link rel="stylesheet" href="../node_modules/milligram/dist/milligram.min.css" />
     <link rel="stylesheet" href="../node_modules/nprogress/nprogress.css" />
+    
     <link rel="stylesheet" href="./assets/font-awesome/css/font-awesome.min.css" />
     <link rel="stylesheet" href="./assets/index.css">
+   
   </head>
   <body>
     <div class="header">
@@ -139,9 +141,11 @@
           <div class="row">
             <div class="column column-33">
                 <div class="box" style="text-align: left;padding:20px;">
+                 <label id="txtHnLabel" for="txtHn">วันที่ตรวจ </label>
+                <input placeholder="" data-date-format="mm/dd/yyyy" data-provide="datepicker" disabled class="datepicker text-big text-primary" type="text" id="txtDate">
                 <label for="txtHn">ค้น HN (Enter)</label>
                 <input placeholder="" disabled class="text-big text-primary" type="text" id="txtHn">
-                <label for="txtVn">VN (แสดงเฉพาะ vn วันที่ปัจจุบัน)</label>
+                <label for="txtVn">VN (แสดงเฉพาะ vn วันที่เลือก)</label>
                 <select disabled style="height:105px;" size="10" name="txtVn" id="txtVn" ></select>
                 <label for="txtRight">ใช้สิทธิการรักษาพยาบาล (EDC)</label>
                 <select disabled  name="txtRight" id="txtRight" ></select>
