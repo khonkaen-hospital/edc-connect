@@ -13,6 +13,8 @@ const popupBox = require('./lib/popupBox')
 
 var EventEmitter = require('events');
 
+const feedURL = `https://update.electronjs.org/khonkaen-hospital/edc-connect/${process.platform}-${process.arch}/${app.getVersion()}`
+console.log('=======', feedURL)
 // **************************************************************************
 // ============================= Form =======================================
 // **************************************************************************

@@ -13,7 +13,9 @@
     "postinstall": "electron-builder install-app-deps",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "release": "electron-builder -p always",
+    "release:mac": "electron-builder --mac -p always",
+    "release-win32": "electron-builder --win -p always",
+    "release:linux": "electron-builder --linux -p always",
     "lint": "echo \"No linting configured\""
   },
   "keywords": [],
@@ -32,7 +34,8 @@
     "copyright": "Copyright © Khon Kaen Hospital",
     "mac": {
       "category": "public.app.kkh.edc-connect",
-      "type": "distribution"
+      "type": "distribution",
+      "darkModeSupport": true
     },
     "win": {
       "target": [
@@ -106,7 +109,7 @@
     "@electron-forge/maker-squirrel": "6.0.0-beta.45",
     "@electron-forge/maker-zip": "6.0.0-beta.45",
     "@electron-forge/plugin-webpack": "^6.0.0-beta.45",
-    "electron": "6.0.9",
+    "electron": "6.0.12",
     "electron-rebuild": "^1.8.6"
   }
 }
