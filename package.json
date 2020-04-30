@@ -89,7 +89,7 @@
     "electron-reload": "^1.5.0",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^5.0.0",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "knex": "^0.19.4",
     "milligram": "^1.3.0",
     "moment": "^2.24.0",
