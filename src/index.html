@@ -1,79 +1,99 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>EDC Connect [V 1.0.0]</title>
-     <link rel="stylesheet" href="../node_modules/pikaday/css/pikaday.css" />
-    <link rel="stylesheet" href="../node_modules/milligram/dist/milligram.min.css" />
-    <link rel="stylesheet" href="../node_modules/nprogress/nprogress.css" />
-    
-    <link rel="stylesheet" href="./assets/font-awesome/css/font-awesome.min.css" />
-    <link rel="stylesheet" href="./assets/index.css">
-   
-  </head>
-  <body>
-    <div class="header">
-        <div class="branding"> <span>EDC</span> CONNECT</div>
-        <ul id="menus">
-          <li data-page="dashboard-page" class="menu active" id="menuDashboard">Dashboard</li>
-          <li data-page="payment-page" class="menu" id="menuPaymentAuto"> จ่ายเองเชื่อมกับ HIS </li>
-          <li data-page="index-page" class="menu" id="menuPaymentManual"> จ่ายอัตโนมัติผ่าน MQTT </li>
-          <li data-page="approve-list-page" class="menu" id="menuApproveList">รายการรับชำระ</li>
-          <li data-page="setting-page" class="menu" id="menuSetting">ตั้งค่า</li>
-        </ul>
-    </div>
-     
-    <div id="dashboard-page" class="container page pageActive" >
-        <h4>Dashboard</h4>
-        <div class="row">
-            <div class="column"><div class="box"><h4 id="boxAmount"> ฿0.00</h4><p>จำนวนเงิน</p></div></div>
-            <div class="column"><div class="box"><h4 id="boxTotal">0 </h4><p>รายการทั้งหมด</p></div></div>
-            <div class="column"><div class="box"><h4 id="boxApproveCancel">0 / 0 </h4><p>รายการอนุมัติ/ยกเลิก</p></div></div>
-          </div>
 
-          <div class="row">
-            <div class="column">
-                <div class="box">
-                    <canvas id="edcLineChart" height="150"></canvas>
-                </div>
-            </div>
-            <div class="column">
-                <div class="box">
-                    <canvas id="edcPieChart" height="150"></canvas>
-                </div>
-            </div>
-          </div>
-    </div>
+<head>
+  <meta charset="UTF-8">
+  <title>EDC Connect [V 1.0.0]</title>
+  <link rel="stylesheet" href="../node_modules/pikaday/css/pikaday.css" />
+  <link rel="stylesheet" href="../node_modules/milligram/dist/milligram.min.css" />
+  <link rel="stylesheet" href="../node_modules/nprogress/nprogress.css" />
 
-    <div id="index-page" style="display: none;" class="container page">
-      <h4>จ่ายอัตโนมัติผ่าน MQTT</h4>
-        
-        <div class="row">
-          <div class="column">
-              <button style="width: 100%;" id="btnConnect"  type="button" class="button button-primary">  <i class="fa fa-refresh" aria-hidden="true"></i>  เชื่อมต่อเครื่อง EDC</button>
-          </div>
-          <div class="column">
-              <button style="width: 100%;" id="btnMqttStart"  type="button" class="button button-outline">  <i class="fa fa-refresh" aria-hidden="true"></i>  Start MQTT </button>
-          </div>
-          <div class="column">
-              <button style="width: 100%;" id="btnMqttStop" type="button" class="button button-outline"> <i class="fa fa-cog" aria-hidden="true"></i> Stop MQTT</button>
-          </div>
+  <link rel="stylesheet" href="./assets/font-awesome/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="./assets/index.css">
+
+</head>
+
+<body>
+  <div class="header">
+    <div class="branding"> <span>EDC</span> CONNECT</div>
+    <ul id="menus">
+      <li data-page="dashboard-page" class="menu active" id="menuDashboard">Dashboard</li>
+      <li data-page="payment-page" class="menu" id="menuPaymentAuto"> จ่ายเองเชื่อมกับ HIS </li>
+      <li data-page="index-page" class="menu" id="menuPaymentManual"> จ่ายอัตโนมัติผ่าน MQTT </li>
+      <li data-page="approve-list-page" class="menu" id="menuApproveList">รายการรับชำระ</li>
+      <li data-page="setting-page" class="menu" id="menuSetting">ตั้งค่า</li>
+    </ul>
+  </div>
+
+  <div id="dashboard-page" class="container page pageActive">
+    <h4>Dashboard</h4>
+    <div class="row">
+      <div class="column">
+        <div class="box">
+          <h4 id="boxAmount"> ฿0.00</h4>
+          <p>จำนวนเงิน</p>
         </div>
+      </div>
+      <div class="column">
+        <div class="box">
+          <h4 id="boxTotal">0 </h4>
+          <p>รายการทั้งหมด</p>
+        </div>
+      </div>
+      <div class="column">
+        <div class="box">
+          <h4 id="boxApproveCancel">0 / 0 </h4>
+          <p>รายการอนุมัติ/ยกเลิก</p>
+        </div>
+      </div>
+    </div>
 
-        <div class="box" style="margin-top:30px; padding: 20px;text-align:left;">
-            <legend>MQTT</legend>
-            <div class="row">
-                <div class="column">
-                  <label for="txtTopic">Topic</label>
-                  <input type="text" value="/edc/request/1" id="txtTopic">
-                </div>
-                <div class="column">
-                  <label for="">&nbsp;</label>
-                  <button id="btnMqttTestPayment" class="button button-primary">Send</button>
-                </div>
-              </div> 
-              <label for="txtData">Data</label>
-                  <textarea name="txtLogs"  style="height: 125px;" rows="5"  id="txtData">
+    <div class="row">
+      <div class="column">
+        <div class="box">
+          <canvas id="edcLineChart" height="150"></canvas>
+        </div>
+      </div>
+      <div class="column">
+        <div class="box">
+          <canvas id="edcPieChart" height="150"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="index-page" style="display: none;" class="container page">
+    <h4>จ่ายอัตโนมัติผ่าน MQTT</h4>
+
+    <div class="row">
+      <div class="column">
+        <button style="width: 100%;" id="btnConnect" type="button" class="button button-primary"> <i
+            class="fa fa-refresh" aria-hidden="true"></i> เชื่อมต่อเครื่อง EDC</button>
+      </div>
+      <div class="column">
+        <button style="width: 100%;" id="btnMqttStart" type="button" class="button button-outline"> <i
+            class="fa fa-refresh" aria-hidden="true"></i> Start MQTT </button>
+      </div>
+      <div class="column">
+        <button style="width: 100%;" id="btnMqttStop" type="button" class="button button-outline"> <i class="fa fa-cog"
+            aria-hidden="true"></i> Stop MQTT</button>
+      </div>
+    </div>
+
+    <div class="box" style="margin-top:30px; padding: 20px;text-align:left;">
+      <legend>MQTT</legend>
+      <div class="row">
+        <div class="column">
+          <label for="txtTopic">Topic</label>
+          <input type="text" value="/edc/request/1" id="txtTopic">
+        </div>
+        <div class="column">
+          <label for="">&nbsp;</label>
+          <button id="btnMqttTestPayment" class="button button-primary">Send</button>
+        </div>
+      </div>
+      <label for="txtData">Data</label>
+      <textarea name="txtLogs" style="height: 125px;" rows="5" id="txtData">
 {
   "hn":"62321233",
   "vn":"21231233",
@@ -83,21 +103,21 @@
   "right_id": 11
 }
                   </textarea>
-              </fieldset>
-        </div>
-       
-      <label for="txtLogs">Logs</label> 
-      <textarea name="txtLogs"  style="font-size:14px; height: 20px;" readonly id="txtLogs"></textarea>
-      
-      
-      
-      <h5>Payment topic</h5>
-      <pre>
-        
+      </fieldset>
+    </div>
+
+    <label for="txtLogs">Logs</label>
+    <textarea name="txtLogs" style="font-size:14px; height: 20px;" readonly id="txtLogs"></textarea>
+
+
+
+    <h5>Payment topic</h5>
+    <pre>
+
   /edc/request/< edcId >
       </pre>
-      <h5>Data</h5>
-      <pre>
+    <h5>Data</h5>
+    <pre>
 
   {
     "hn":"62321233",
@@ -109,219 +129,262 @@
   }
       </pre>
 
-      <h5>Cancel topic</h5>
-      <pre>
-  
+    <h5>Cancel topic</h5>
+    <pre>
+
   /edc/cancel/< edcId >
       </pre>
-      <h5>Data</h5>
-      <pre>
+    <h5>Data</h5>
+    <pre>
 
   {
     "trace":"000034"
   }
       </pre>
-      <h5>Reprint topic</h5>
-      <pre>
+    <h5>Reprint topic</h5>
+    <pre>
 
   /edc/reprint/< edcId >
       </pre>
-      <h5>Data</h5>
-      <pre>
+    <h5>Data</h5>
+    <pre>
 
   {
     "trace":"000034"
   }
       </pre>
-    </div>
+  </div>
 
-    <div id="payment-page" style="display: none;" class="container page">
-        <h4>ค้นรายการจาก HIS </h4>
-        <form>
-          <div class="row">
-            <div class="column column-33">
-                <div class="box" style="text-align: left;padding:20px;">
-                 <label id="txtHnLabel" for="txtHn">วันที่ตรวจ </label>
-                <input placeholder="" data-date-format="mm/dd/yyyy" data-provide="datepicker" disabled class="datepicker text-big text-primary" type="text" id="txtDate">
-                <label for="txtHn">ค้น HN (Enter)</label>
-                <input placeholder="" disabled class="text-big text-primary" type="text" id="txtHn">
-                <label for="txtVn">VN (แสดงเฉพาะ vn วันที่เลือก)</label>
-                <select disabled style="height:105px;" size="10" name="txtVn" id="txtVn" ></select>
-                <label for="txtRight">ใช้สิทธิการรักษาพยาบาล (EDC)</label>
-                <select disabled  name="txtRight" id="txtRight" ></select>
-                <label for="payAmount">จำนวนเงิน</label>
-                <input disabled min="0" step="0.25" class="text-big text-error" type="number" id="payAmount">
-                
-                <button style="width:100%" id="btnPay" disabled type="button" class="button button-success">
-                  <i class="fa fa-save" aria-hidden="true"></i> จ่ายเงิน
-                </button>
-
-                <button id="btnCancel" style="display:none;" disabled type="button" class="button button-outline">
-                    <i class="fa fa-stop-circle" aria-hidden="true"></i> Cancel
-                </button>
-              </div>
+  <div id="payment-page" style="display: none;" class="container page">
+    <h4>ค้นรายการจาก HIS </h4>
+    <form>
+      <div class="row">
+        <div class="column column-33">
+          <div class="box" style="text-align: left;padding:20px;">
+            <div id="boxType">
+              <label id="txtTypeLabel" for="txtHn">ประเภท </label>
+              <input type="radio" value="opd" disabled checked id="txtTypeOpd" name="txtType"> OPD
+              <input type="radio" value="ipd" disabled id="txtTypeIpd" name="txtType"> IPD
             </div>
-            <div class="column column-67">
-              <button style="width: 100%;" id="btnConnectPayment"  type="button" class="button">
-                      <i class="fa fa-refresh" aria-hidden="true"></i> 
-                      เชื่อมต่อเครื่อง EDC
-              </button>
-             
 
-              <h4>ข้อมูล Visit ที่เลือก</h4>
-              <div class="box detailLabel" style="text-align: left;padding:20px;">
-
-                <blockquote style="display: none;" id="boxIsPayment">
-                  <p ><em style="color:red;">รายการนี้ชำระเงินแล้ว!</em></p>
-                </blockquote>
-
-                <div class="row">
-                    <div class="column">
-                        <label for="txtLabelVn">VN</label>
-                        <input placeholder="" disabled class="text-big text-primary" type="text" id="txtLabelVn">
-                  </div>
-                    <div class="column">
-                        <label for="txtLabelClinic">ห้องตรวจ</label>
-                        <input placeholder="" disabled class="text-big text-primary" type="text" id="txtLabelClinic">
-                    </div>
-                    
-                </div>
-
-                <div class="row">
-                    <div class="column">
-                        <label for="txtLabelFullname">ชื่อ-นามสกุล</label>
-                        <input placeholder="" disabled class="text-big text-primary" type="text" id="txtLabelFullname">
-                    </div>
-                    <div class="column">
-                        <label for="txtLabelPID">เลขบัตรประชาชน</label>
-                        <input placeholder="" disabled class="text-big text-primary" type="text" id="txtLabelPID">
-                    </div>
-                </div>
-                 <div class="row">
-                  
-                  <div class="column">
-                      <label for="txtLabelDate">วันที่</label>
-                      <input placeholder="" disabled class="text-big text-primary" type="text" id="txtLabelDate">
-                  </div>
-                  <div class="column">
-                      <label for="txtLabelTime">เวลา</label>
-                      <input placeholder="" disabled class="text-big text-primary" type="text" id="txtLabelTime">
-                  </div>
-                </div>
-
-              </div>
-              
+            <div id="boxDate">
+              <label id="txtHnLabel" for="txtHn">วันที่ตรวจ </label>
+              <input placeholder="" data-date-format="mm/dd/yyyy" data-provide="datepicker" disabled
+                class="datepicker text-big text-primary" type="text" id="txtDate">
             </div>
+
+
+            <label for="txtHn">ค้น HN (Enter)</label>
+            <input placeholder="" disabled class="text-big text-primary" type="text" id="txtHn">
+
+            <div id="boxVn">
+              <label for="txtVn">VN (แสดงเฉพาะ vn วันที่เลือก)</label>
+              <select disabled style="height:60px;" size="10" name="txtVn" id="txtVn"></select>
+            </div>
+
+
+            <label for="txtRight">ใช้สิทธิการรักษาพยาบาล (EDC)</label>
+            <select disabled name="txtRight" id="txtRight"></select>
+            <label for="payAmount">จำนวนเงิน</label>
+            <input disabled min="0" step="0.25" class="text-big text-error" type="number" id="payAmount">
+
+            <button style="width:100%" id="btnPay" disabled type="button" class="button button-success">
+              <i class="fa fa-save" aria-hidden="true"></i> จ่ายเงิน
+            </button>
+
+            <button id="btnCancel" style="display:none;" disabled type="button" class="button button-outline">
+              <i class="fa fa-stop-circle" aria-hidden="true"></i> Cancel
+            </button>
           </div>
-        </form>
-    </div>
-
-    <div id="approve-list-page" style="display: none;" class="container page">
-        <h4 style="margin-bottom: 0;">รายการที่รับชำระ</h4>
-        <div class="box-table">
-            <table class="table" id="table_id" style="width:100%" ></table>
         </div>
-    </div>
+        <div class="column column-67">
+          <button style="width: 100%;" id="btnConnectPayment" type="button" class="button">
+            <i class="fa fa-refresh" aria-hidden="true"></i>
+            เชื่อมต่อเครื่อง EDC
+          </button>
 
-    <div id="setting-page" style="display: none;" class="container page">
-        <h4>ตั้งค่า</h4>
-        <form id="settingForm" name="settingForm">
-          <legend>MQTT</legend>
-          <div class="row">
-              <div class="column">
-                <label for="txtMqttHost">MQTT Server</label>
-                <input type="text" id="txtMqttHost">
-              </div>
-              <div class="column">
-                <label for="txtMqttUser">MQTT User</label>
-                <input type="text" id="txtMqttUser">
-              </div>
-              <div class="column">
-                <label for="txtMqttPassword">MQTT Password</label>
-                <input type="password" placeholder="" id="txtMqttPassword">
-              </div>
-            </div> 
-            </fieldset>
 
-            <fieldset>
-                <legend>MYSQL</legend>
+          <h4>ข้อมูล Visit ที่เลือก</h4>
+          <div class="box detailLabel" style="text-align: left;padding:20px;">
+
+            <blockquote style="display: none;" id="boxIsPayment">
+              <p><em style="color:red;">รายการนี้ชำระเงินแล้ว!</em></p>
+            </blockquote>
+
+            <div id="ipdBox" style="display: none;">
               <div class="row">
-                <div class="column">
-                  <label for="txtHost">Host</label>
-                  <input type="text" id="txtHost">
+                <div class="column column-50">
+                  <label for="txtLabelTime">Ward</label>
+                  <input placeholder="" disabled class="text-big text-primary" type="text" id="txtWard">
                 </div>
-                <div class="column">
-                  <label for="txtUsername">Username</label>
-                  <input type="text"  id="txtUsername">
+                <div class="column column-25">
+                  <label for="txtLabelDate">AN</label>
+                  <input placeholder="" disabled class="text-big text-primary" type="text" id="txtAn">
                 </div>
-                <div class="column">
-                    <label for="txtPassword">Password</label>
-                    <input type="password" id="txtPassword">
-                  </div>
+                <div class="column column-25">
+                  <label for="txtLabelDate">Discharge</label>
+                  <input placeholder="" disabled class="text-big text-primary" type="text" id="txtDischarge">
+                </div>
               </div>
-              
-             <div class="row">
-                <div class="column">
-                  <label for="txtDatabaseName">Database Name</label>
-                  <input type="text"  id="txtDatabaseName">
-                </div>
-                <div class="column">
-                    <label for="txtVisitTableName">Visit table name</label>
-                    <input type="text" name="txtVisitTableName" value="" id="txtVisitTableName" >
-                  </div>
-                <div class="column"></div>
-                
+            </div>
+
+            <div class="row">
+              <div class="column">
+                <label for="txtLabelVn">VN</label>
+                <input placeholder="" disabled class="text-big text-primary" type="text" id="txtLabelVn">
+              </div>
+              <div class="column">
+                <label for="txtLabelClinic">ห้องตรวจ</label>
+                <input placeholder="" disabled class="text-big text-primary" type="text" id="txtLabelClinic">
               </div>
 
-              </fieldset>
+            </div>
 
-              <fieldset style="display: none;" id="edcBox" >
-                  <legend>EDC</legend>
-                <div class="row">
-                    <div class="column">
-                        <label for="edcId">EDC Location</label>
-                        <select name="edcId" id="edcId"></select>
-                      </div>
-                    <div class="column">
-                      <label for="edcPort">Edc port</label>
-                      <select name="edcPort" id="edcPort"></select>
-                    </div>
-                    
-                      <div class="column">
-                          <label for="baudRate">Baud Rate</label>
-                          <input type="text" id="baudRate">
-                        </div>
-                  </div>
-                  
-  
-                  <div class="row">
-                      <div class="column">
-                          <label for="parity">Parity</label>
-                          <input type="text"  id="parity">
-                        </div>
-                      <div class="column">
-                        <label for="stopBits">Stop Bits</label>
-                        <input type="text" id="stopBits">
-                      </div>
-                      <div class="column">
-                        <label for="dataBits">DataBits</label>
-                        <input type="text"  id="dataBits">
-                      </div>
-                    </div>
-                   </fieldset>
+            <div class="row">
+              <div class="column">
+                <label for="txtLabelFullname">ชื่อ-นามสกุล</label>
+                <input placeholder="" disabled class="text-big text-primary" type="text" id="txtLabelFullname">
+              </div>
+              <div class="column">
+                <label for="txtLabelPID">เลขบัตรประชาชน</label>
+                <input placeholder="" disabled class="text-big text-primary" type="text" id="txtLabelPID">
+              </div>
+            </div>
+            <div class="row">
+              <div class="column">
+                <label for="txtLabelDate">วันที่รักษา</label>
+                <input placeholder="" disabled class="text-big text-primary" type="text" id="txtLabelDate">
+              </div>
+              <div class="column">
+                <label for="txtLabelTime">เวลา</label>
+                <input placeholder="" disabled class="text-big text-primary" type="text" id="txtLabelTime">
+              </div>
+            </div>
+            <div class="row">
+              <div class="column">
+                <label for="txtLabelDate">สิทธิการรักษา</label>
+                <input placeholder="" disabled class="text-big text-primary" type="text" id="txtOpdright">
+              </div>
+            </div>
 
-                <fieldset>
+          </div>
 
-                <button id="saveSetting" type="button" class="button button-primary"> <i class="fa fa-save" aria-hidden="true"></i> Save</button>
-                <button id="resetSetting" type="button" class="button button-outline"> <i class="fa fa-refresh" aria-hidden="true"></i> Reset Settings</button>
-                <button id="testConnection" type="button" class="button button-outline"> <i class="fa fa-refresh" aria-hidden="true"></i> Test Connection</button>
-                <button id="reloadSerialport" type="button" class="button button-outline"> <i class="fa fa-refresh" aria-hidden="true"></i> Reload EEC</button>
-          </form>
-          <hr>
-          <div style="text-align: right;"><small id="labelAbout"></small></div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div id="approve-list-page" style="display: none;" class="container page">
+    <h4 style="margin-bottom: 0;">รายการที่รับชำระ</h4>
+    <div class="box-table">
+      <table class="table" id="table_id" style="width:100%"></table>
     </div>
+  </div>
 
-  </body>
-  <script src="./renderer.js"></script>
-  <script src="./assets/vanilla.js"></script>
+  <div id="setting-page" style="display: none;" class="container page">
+    <h4>ตั้งค่า</h4>
+    <form id="settingForm" name="settingForm">
+      <legend>MQTT</legend>
+      <div class="row">
+        <div class="column">
+          <label for="txtMqttHost">MQTT Server</label>
+          <input type="text" id="txtMqttHost">
+        </div>
+        <div class="column">
+          <label for="txtMqttUser">MQTT User</label>
+          <input type="text" id="txtMqttUser">
+        </div>
+        <div class="column">
+          <label for="txtMqttPassword">MQTT Password</label>
+          <input type="password" placeholder="" id="txtMqttPassword">
+        </div>
+      </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>MYSQL</legend>
+        <div class="row">
+          <div class="column">
+            <label for="txtHost">Host</label>
+            <input type="text" id="txtHost">
+          </div>
+          <div class="column">
+            <label for="txtUsername">Username</label>
+            <input type="text" id="txtUsername">
+          </div>
+          <div class="column">
+            <label for="txtPassword">Password</label>
+            <input type="password" id="txtPassword">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="column">
+            <label for="txtDatabaseName">Database Name</label>
+            <input type="text" id="txtDatabaseName">
+          </div>
+          <div class="column">
+            <label for="txtVisitTableName">Visit table name</label>
+            <input type="text" name="txtVisitTableName" value="" id="txtVisitTableName">
+          </div>
+          <div class="column"></div>
+
+        </div>
+
+      </fieldset>
+
+      <fieldset style="display: none;" id="edcBox">
+        <legend>EDC</legend>
+        <div class="row">
+          <div class="column">
+            <label for="edcId">EDC Location</label>
+            <select name="edcId" id="edcId"></select>
+          </div>
+          <div class="column">
+            <label for="edcPort">Edc port</label>
+            <select name="edcPort" id="edcPort"></select>
+          </div>
+
+          <div class="column">
+            <label for="baudRate">Baud Rate</label>
+            <input type="text" id="baudRate">
+          </div>
+        </div>
+
+
+        <div class="row">
+          <div class="column">
+            <label for="parity">Parity</label>
+            <input type="text" id="parity">
+          </div>
+          <div class="column">
+            <label for="stopBits">Stop Bits</label>
+            <input type="text" id="stopBits">
+          </div>
+          <div class="column">
+            <label for="dataBits">DataBits</label>
+            <input type="text" id="dataBits">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+
+        <button id="saveSetting" type="button" class="button button-primary"> <i class="fa fa-save"
+            aria-hidden="true"></i> Save</button>
+        <button id="resetSetting" type="button" class="button button-outline"> <i class="fa fa-refresh"
+            aria-hidden="true"></i> Reset Settings</button>
+        <button id="testConnection" type="button" class="button button-outline"> <i class="fa fa-refresh"
+            aria-hidden="true"></i> Test Connection</button>
+        <button id="reloadSerialport" type="button" class="button button-outline"> <i class="fa fa-refresh"
+            aria-hidden="true"></i> Reload EEC</button>
+    </form>
+    <hr>
+    <div style="text-align: right;"><small id="labelAbout"></small></div>
+  </div>
+
+</body>
+<script src="./renderer.js"></script>
+<script src="./assets/vanilla.js"></script>
+
 </html>

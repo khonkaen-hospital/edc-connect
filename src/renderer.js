@@ -26,6 +26,7 @@ var EDCDATA = {
     action: '',
     hn: '',
     vn: '',
+    an: '',
     pid: '',
     right_id: '',
     amount: '',
@@ -79,6 +80,9 @@ var txtVn = document.getElementById('txtVn')
 var txtRight = document.getElementById('txtRight')
 var payAmount = document.getElementById('payAmount')
 var btnPay = document.getElementById('btnPay')
+var txtOpdright = document.getElementById('txtOpdright')
+var txtWard = document.getElementById('txtWard')
+var txtAn = document.getElementById('txtAn')
 
 var txtLabelVn = document.getElementById('txtLabelVn')
 var txtLabelDate = document.getElementById('txtLabelDate')
@@ -95,15 +99,16 @@ var txtTopic = document.getElementById('txtTopic')
 var txtData = document.getElementById('txtData')
 var boxIsPayment = document.getElementById('boxIsPayment')
 txtDate.value = moment().format('YYYY-MM-DD');
-var picker = new Pikaday({ 
+
+var picker = new Pikaday({
     field: txtDate,
     format: 'YYYY-MM-DD',
     i18n: {
-        previousMonth : 'Previous Month',
-        nextMonth     : 'Next Month',
-        months        : ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'],
-        weekdays      : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-        weekdaysShort : ['อ.','จ.','อ.','พ.','พฤ.','ศ.','ส.']
+        previousMonth: 'Previous Month',
+        nextMonth: 'Next Month',
+        months: ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'],
+        weekdays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        weekdaysShort: ['อ.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.']
     }
 });
 
@@ -122,7 +127,7 @@ document.getElementById('btnMqttStop').addEventListener('click', (e) => {
     stopMqtt()
 })
 document.getElementById('btnMqttTestPayment').addEventListener('click', (e) => {
-    if(Mqtt.publish(txtTopic.value,txtData.value)){
+    if (Mqtt.publish(txtTopic.value, txtData.value)) {
         popupBox.info('ส่งข้อมูลเรียบร้อย')
     } else {
         popupBox.info('กรุณาเชื่อมต่อ MQTT ')
@@ -139,10 +144,10 @@ document.getElementById('btnConnectPayment').addEventListener('click', (e) => {
     _edcConnectType = 'MANUAL'
 })
 document.getElementById('testConnection').addEventListener('click', (e) => {
-        saveSetting()
-        initFormData()
-        initDb()
-        checkMysqlIsConnect()
+    saveSetting()
+    initFormData()
+    initDb()
+    checkMysqlIsConnect()
 })
 
 document.getElementById('saveSetting').addEventListener('click', (e) => {
@@ -168,6 +173,17 @@ document
         renderEdcPorts()
     })
 
+document.querySelectorAll('input[name=txtType]').forEach(r => {
+    r.addEventListener('click', (e) => {
+        console.log(e.target.value);
+        showHideIpd(e.target.value);
+        txtHn.focus();
+        // resetData()
+
+    })
+});
+
+
 txtHn.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         e.preventDefault()
@@ -179,10 +195,10 @@ txtVn.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         e.preventDefault()
         const vn = e.srcElement.value
-        if(isApproveVns.includes(vn)){
+        if (isApproveVns.includes(vn)) {
             btnPay.disabled = true;
             boxIsPayment.style.display = 'block'
-        }else {
+        } else {
             btnPay.disabled = false
             boxIsPayment.style.display = 'none'
         }
@@ -194,7 +210,7 @@ txtVn.addEventListener('keydown', (e) => {
 txtVn.addEventListener('click', (e) => {
     e.preventDefault()
     const vn = e.srcElement.value
-    if(e.srcElement.dataset.ispayment==1){
+    if (e.srcElement.dataset.ispayment == 1) {
         btnPay.disabled = true;
         boxIsPayment.style.display = 'block'
     } else {
@@ -217,11 +233,11 @@ txtRight.addEventListener('keydown', (e) => {
 payAmount.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         e.preventDefault()
-       if(e.srcElement.value > 0){
-           btnPay.focus()
-       } else {
-           txtHn.focus()
-       }
+        if (e.srcElement.value > 0) {
+            btnPay.focus()
+        } else {
+            txtHn.focus()
+        }
     }
 })
 
@@ -229,19 +245,19 @@ btnPay.addEventListener('click', (e) => {
 
     if (+payAmount.value > 0) {
         popupBox.confirm('คุณต้องการจ่ายเงินใช่หรือไม่?')
-        .then(confirm => {
-            if(confirm){
-                onSendRequestToPayment({
-                    hn: txtHn.value,
-                    vn: txtVn.value,
-                    pid: EDCDATA.pid,
-                    right_id: +txtRight.value,
-                    amount: payAmount.value,
-                    fullname: EDCDATA.fullname
-                })
-            }
-        })
-       
+            .then(confirm => {
+                if (confirm) {
+                    onSendRequestToPayment({
+                        hn: txtHn.value,
+                        vn: txtVn.value,
+                        pid: EDCDATA.pid,
+                        right_id: +txtRight.value,
+                        amount: payAmount.value,
+                        fullname: EDCDATA.fullname
+                    })
+                }
+            })
+
     } else {
         addLog('จำนวนเงินทีจ่ายต้องมากกว่า 0 !')
         payAmount.focus()
@@ -264,8 +280,18 @@ btnPay.addEventListener('click', (e) => {
 // ============================= Functions ==================================
 // **************************************************************************
 
+function toThaiDate(value) {
+    return value ? (moment(value).locale('th').format('DD MMM') + ' ' + (+moment(value).locale('th').format('YYYY') + 543)) : '';
+}
+
+function showHideIpd(value) {
+    document.getElementById('ipdBox').style.display = (value === 'opd' ? 'none' : 'block');
+    document.getElementById('boxDate').style.display = (value === 'ipd' ? 'none' : 'block');
+    document.getElementById('boxVn').style.display = (value === 'ipd' ? 'none' : 'block');
+}
+
 async function addEventOnClickOfTable() {
-    
+
     const buttonsCancel = document.getElementById('table_id').getElementsByClassName('btnActionCancel')
 
     for (const key in buttonsCancel) {
@@ -298,21 +324,21 @@ async function addEventOnClickOfTable() {
 }
 
 function confirmReprint(data) {
-    popupBox.confirm('พิมพ์ซ้ำ?','คุณต้องการที่จะพิมพ์ซ้ำใช่หรือไม่.')
-    .then(confirm => {
-        if(confirm){
-            onSendRequestToReprint(data)
-        }
-    })
+    popupBox.confirm('พิมพ์ซ้ำ?', 'คุณต้องการที่จะพิมพ์ซ้ำใช่หรือไม่.')
+        .then(confirm => {
+            if (confirm) {
+                onSendRequestToReprint(data)
+            }
+        })
 }
 
 function confirmCancel(data) {
-    popupBox.confirm('ยกเลิกรายการชำระเงิน?','คุณต้องการที่จะยกเลิกรายการใช่หรือไม่.')
-    .then(confirm => {
-        if(confirm){
-            onSendRequestToCancel(data)
-        }
-    })
+    popupBox.confirm('ยกเลิกรายการชำระเงิน?', 'คุณต้องการที่จะยกเลิกรายการใช่หรือไม่.')
+        .then(confirm => {
+            if (confirm) {
+                onSendRequestToCancel(data)
+            }
+        })
 }
 
 function initFormData() {
@@ -399,7 +425,7 @@ function edcStartConnect() {
 
 function onSendRequestToPayment(data = { hn, vn, pid, amount, fullname, right_id }) {
     data.amount = parseFloat(data.amount).toFixed(2)
-    if(edcConnect.isConnect === false){
+    if (edcConnect.isConnect === false) {
         popupBox.error('ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณากดปุ่ม "เชื่อมต่อเครื่อง EDC"')
     } else {
         edcEvent.emit('beforePayment', {
@@ -410,7 +436,7 @@ function onSendRequestToPayment(data = { hn, vn, pid, amount, fullname, right_id
 }
 
 function onSendRequestToReprint(data) {
-    if(edcConnect.isConnect === false){
+    if (edcConnect.isConnect === false) {
         popupBox.error('ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณากดปุ่ม "เชื่อมต่อเครื่อง EDC"')
     } else {
         edcEvent.emit('beforeReprint', {
@@ -421,7 +447,7 @@ function onSendRequestToReprint(data) {
 }
 
 function onSendRequestToCancel(data) {
-    if(edcConnect.isConnect === false){
+    if (edcConnect.isConnect === false) {
         popupBox.error('ไม่สามารถเชื่อมต่อเครื่อง edc ได้ กรุณากดปุ่ม "เชื่อมต่อเครื่อง EDC"')
     } else {
         edcEvent.emit('beforeCancel', {
@@ -473,7 +499,7 @@ function onData(data) {
 
     const buffer = Buffer.from(data)
     console.log('response buffer=', buffer.toString())
-    
+
     if (responseBuffer.length === 2) {
         if (response.action === 'TXN CANCEL') {
             edcEvent.emit('affterTxnCancel', {
@@ -502,12 +528,12 @@ function onData(data) {
         savePayment(response)
         NProgress.done()
     }
-    addLog('[EDC][RESPONSE] EDC ตอบกลับข้อมูลสถานะ: '+ (ACTION || ''))
+    addLog('[EDC][RESPONSE] EDC ตอบกลับข้อมูลสถานะ: ' + (ACTION || ''))
 }
 
-function checkResponseMessage(actionName, data, response){
+function checkResponseMessage(actionName, data, response) {
     if (actionName === 'PAYMENT') {
-        popupBox.success('ชำระเงินเสร็จเรียบร้อย.',1500, txtHn)
+        popupBox.success('ชำระเงินเสร็จเรียบร้อย.', 1500, txtHn)
         edcEvent.emit('affterPayment', {
             action: actionName,
             data: data,
@@ -520,14 +546,14 @@ function checkResponseMessage(actionName, data, response){
             data: data,
             response: response
         })
-    } else if (actionName === 'CANCEL' ) {
+    } else if (actionName === 'CANCEL') {
         popupBox.success('ยกเลิกรายการเสร็จเรียบร้อย.')
         edcEvent.emit('affterCancel', {
             action: actionName,
             data: data,
             response: response
         })
-    } else if (actionName === 'TXNCANCEL' ) {
+    } else if (actionName === 'TXNCANCEL') {
         popupBox.success('ยกเลิกรายการเสร็จเรียบร้อย.')
         edcEvent.emit('affterTxnCancel', {
             action: actionName,
@@ -560,7 +586,7 @@ async function saveSetting() {
             databits: txtDataBits.value
         }
     })
-    console.log('port',txtEdcPort.value,'location:', txtEdcId.value)
+    console.log('port', txtEdcPort.value, 'location:', txtEdcId.value)
 
     addLog('[SAVE SETTING] บันทึกข้อมูลการตั้งค่า')
 }
@@ -577,11 +603,15 @@ async function getPriceAmount(vn) {
                 fullname: EDCDATA.fullname,
                 pid: EDCDATA.pid,
                 time: res[0].time,
-                clinic: res[0].dep_name
+                clinic: res[0].dep_name,
+                ward: vns[0].ward_name,
+                pttype: vns[0].pttype_name,
+                an: vns[0].ipd_an
             })
             setEdcData({
                 vn: txtVn.value,
-                amount: total
+                an: txtAn.value,
+                amount: total,
             })
         }
         payAmount.value = total
@@ -600,6 +630,8 @@ function disabledPaymentButton(value) {
     txtRight.disabled = value
     payAmount.disabled = value
     btnCancel.disabled = value
+    txtTypeIpd.disabled = value;
+    txtTypeOpd.disabled = value;
 }
 
 // **************************************************************************
@@ -693,13 +725,12 @@ async function savePayment(data = { app_code, trace, action }) {
     reloadData()
     resetData()
     let status = await checkVisitsIsPaymentAll(TEMPHN);
-    if(!status){
+    if (!status) {
         txtHn.value = TEMPHN;
-    } 
+    }
     setTimeout(() => {
         txtHn.focus()
     }, 1000);
-    
 }
 
 function renderAnimationBox(element, value) {
@@ -715,26 +746,26 @@ async function renderEdcList() {
     STOREDATA = response;
     dataTable.clear()
     const type = [
-        {code: 'TXNCANCEL', name: '<i class="fa fa-ban" aria-hidden="true"></i> ยกเลิกระหว่างทำรายการ'},
-        {code: 'PAYMENT', name:'<i class="fa fa-credit-card" aria-hidden="true"></i> ชำระเงิน'},
-        {code: 'CANCEL', name: '<i class="fa fa-undo" aria-hidden="true"></i> ยกเลิกรายการ'},
-        {code: 'REPRINT', name: '<i class="fa fa-print" aria-hidden="true"></i> พิมพ์ซ้ำ'}
+        { code: 'TXNCANCEL', name: '<i class="fa fa-ban" aria-hidden="true"></i> ยกเลิกระหว่างทำรายการ' },
+        { code: 'PAYMENT', name: '<i class="fa fa-credit-card" aria-hidden="true"></i> ชำระเงิน' },
+        { code: 'CANCEL', name: '<i class="fa fa-undo" aria-hidden="true"></i> ยกเลิกรายการ' },
+        { code: 'REPRINT', name: '<i class="fa fa-print" aria-hidden="true"></i> พิมพ์ซ้ำ' }
     ]
 
     approveData = response.map((value, index) => {
         const btnCancelTemplate = `<button data-index="${index}" type="button" class="button button-small button-outline btnActionCancel"> ยกเลิก </button>`
         const btnReprintTemplate = `<button data-index="${index}" type="button" class="button button-small button-outline btnActionReprint"> พิมพ์ซ้ำ</button>`
         let lineThrough = '';
-        if((value.type === 'PAYMENT' && value.status == 0) || ['CANCEL','TXNCANCEL'].includes(value.type)){
-             lineThrough = 'text-decoration:line-through; color:red'
-        } else if(value.type === 'REPRINT') {
+        if ((value.type === 'PAYMENT' && value.status == 0) || ['CANCEL', 'TXNCANCEL'].includes(value.type)) {
+            lineThrough = 'text-decoration:line-through; color:red'
+        } else if (value.type === 'REPRINT') {
             lineThrough = ''
         }
         else {
-             lineThrough = 'color:green'
+            lineThrough = 'color:green'
         }
-        const message = type.filter((v)=>v.code === value.type)
-        const status = (message.length===1) ? message[0].name : ''
+        const message = type.filter((v) => v.code === value.type)
+        const status = (message.length === 1) ? message[0].name : ''
         return [
             `<span style="${lineThrough}">${value.vn}</span>`,
             `<span style="${lineThrough}">${value.hn}</span>`,
@@ -744,7 +775,7 @@ async function renderEdcList() {
             `<span style="color:green">${value.approve_code}</span>`,
             value.trace,
             status,
-            (value.type === 'PAYMENT' &&  value.status == 1 ? btnCancelTemplate + btnReprintTemplate : '')
+            (value.type === 'PAYMENT' && value.status == 1 ? btnCancelTemplate + btnReprintTemplate : '')
         ]
     })
 
@@ -772,36 +803,58 @@ async function renderEdcPorts() {
     txtEdcPort.value = settingData.edc.port
 }
 
- async function checkVisitsIsPaymentAll(hn){
+async function checkVisitsIsPaymentAll(hn) {
     let visits = await conn.getVisitByHn(hn)
     let isPayment = [];
     let isPaymentItems = [];
     let approves = [];
-    if(visits.length>0) {
+    if (visits.length > 0) {
         approves = visits.map(v => v.vn)
         let res = await conn.checkIsPayment(approves)
         isPaymentItems = res.map(v => v.vn)
-        console.log(approves,isPaymentItems)
+        console.log(approves, isPaymentItems)
     }
     return approves.length === isPaymentItems.length;
 }
 
 async function searchVnByHn(hn) {
-    setDetailVisit(false)
+
+    setDetailVisit(false);
+
+    let patientType = document.querySelector('input[name="txtType"]:checked').value;
 
     TEMPHN = hn;
     let vnIsApprove = []
+    let visitIpd = {};
     isApproveVns.length = [];
     let vns = []
+    let priceIpd = 0;
     try {
-        vns = await conn.getVisitByHn(hn,txtDate.value)
+        if (patientType === 'ipd') {
+            vns = await conn.getIpdByHn(hn);
+            if (vns.length > 0) {
+                let getPrice = await conn.getPriceIpd(vns[0].an);
+                priceIpd = getPrice ? getPrice.total : 0;
+            }
+            vns = vns.map(r => {
+                r.ipd_an = r.an;
+                return r;
+            });
+        } else {
+            vns = await conn.getVisitByHn(hn, txtDate.value)
+        }
+
     } catch (error) {
+        console.log(patientType);
         addLog('Error: ' + error.message)
         return
     }
+
+
     txtVn.innerHTML = ''
 
     if (vns.length > 0) {
+        visitIpd = await conn.getVisitVn(vns[0].vn);
         vnIsApprove = vns.map(v => v.vn)
         if (vnIsApprove.length > 0) {
             try {
@@ -817,15 +870,15 @@ async function searchVnByHn(hn) {
             vns.map(v => {
                 v.isPayment = isApproveVns.includes(v.vn)
                 let opt = document.createElement('option')
-                let dataIspayment =  document.createAttribute("data-ispayment"); 
+                let dataIspayment = document.createAttribute("data-ispayment");
                 if (v.isPayment) {
                     //opt.disabled = true
                     dataIspayment.value = 1
                     opt.style = 'font-weight:bold; color:green; text-decoration: line-through;'
-                }else {
+                } else {
                     dataIspayment.value = 0
                 }
-                opt.setAttributeNode(dataIspayment); 
+                opt.setAttributeNode(dataIspayment);
                 opt.appendChild(
                     document.createTextNode(
                         v.vn + ',ค่ารักษา: ' + (v.charge_total || 0) + ', ' + v.dep_name + ', ' + v.time
@@ -836,15 +889,15 @@ async function searchVnByHn(hn) {
             })
             TEMPVNS = vns
         }
-        if(vns[0].isPayment === true) {
+        if (vns[0].isPayment === true) {
             btnPay.disabled = true
             boxIsPayment.style.display = 'block'
-        }else {
+        } else {
             btnPay.disabled = false
             boxIsPayment.style.display = 'none'
         }
         txtVn.value = vns[0].vn // set default selected
-        payAmount.value = vns[0].charge_total || 0
+        payAmount.value = patientType === 'ipd' ? priceIpd : (vns[0].charge_total || 0);
         const hn = vns[0].hn
         const vn = vns[0].vn
         const pid = vns[0].no_card
@@ -855,15 +908,21 @@ async function searchVnByHn(hn) {
             fullname: fullname,
             pid: pid,
             time: vns[0].time,
-            clinic: vns[0].dep_name
+            clinic: vns[0].dep_name,
+            an: vns[0].ipd_an
         })
+
         setDetailVisit({
             vn: vn,
-            date: currentDate,
+            date: patientType === 'ipd' ? toThaiDate(vns[0].admite) : currentDate,
             fullname: fullname,
             pid: pid,
             time: vns[0].time,
-            clinic: vns[0].dep_name
+            clinic: patientType === 'ipd' ? visitIpd.dep_name : vns[0].dep_name,
+            ward: vns[0].ward_name,
+            pttype: vns[0].pttype_name,
+            an: vns[0].ipd_an,
+            disc: vns[0].disc ? toThaiDate(vns[0].disc) : ''
         })
 
         txtVn.focus() // set focus select an
@@ -876,22 +935,26 @@ async function searchVnByHn(hn) {
         popupBox.info('ไม่พบรายการที่ค้นหา!')
         boxIsPayment.style.display = 'none'
         btnPay.disabled = true;
-        
+
     }
 }
 
-function setDetailVisit(data = { vn, date, fullname, pid, time, clinic }) {
-    txtLabelVn.value = data===false ? '' : data.vn
-    txtLabelDate.value = data===false ? '' : data.date
-    txtLabelFullname.value = data===false ? '' : data.fullname
-    txtLabelPID.value = data===false ? '' : data.pid
-    txtLabelTime.value = data===false ? '' : data.time
-    txtLabelClinic.value = data===false ? '' : data.clinic
+function setDetailVisit(data = { vn, date, fullname, pid, time, clinic, ward, pttype, an, disc }) {
+    txtLabelVn.value = data === false ? '' : data.vn
+    txtLabelDate.value = data === false ? '' : data.date
+    txtLabelFullname.value = data === false ? '' : data.fullname
+    txtLabelPID.value = data === false ? '' : data.pid
+    txtLabelTime.value = data === false ? '' : data.time
+    txtLabelClinic.value = data === false ? '' : data.clinic
+    txtWard.value = data === false ? '' : data.ward
+    txtOpdright.value = data === false ? '' : data.pttype
+    txtAn.value = data === false ? '' : data.an
+    txtDischarge.value = data === false ? '' : data.disc
 }
 
 async function updateStatus(edcId, status) {
     try {
-        await conn.updateStatus(edcId, {'status': status})
+        await conn.updateStatus(edcId, { 'status': status })
     } catch (error) {
         console.log(error.message)
         addLog('Error: ' + error.message)
@@ -939,7 +1002,7 @@ function startMqtt() {
 
     Mqtt.event.on('response', (data) => {
         addLog('[MQTT][RESPONSE] MQTT ตอบกลับข้อมูล')
-       console.table(data)
+        console.table(data)
     })
 
     client.on('offline', () => {
@@ -956,7 +1019,7 @@ function stopMqtt() {
 }
 
 function initEvents() {
-    
+
     edcEvent.on('beforePayment', (response) => {
         console.log('beforePayment')
         console.table(response)
@@ -968,7 +1031,7 @@ function initEvents() {
     })
 
     edcEvent.on('beforeReprint', (data) => {
-        console.log('beforeReprint',data)
+        console.log('beforeReprint', data)
         console.table(data)
         ACTION = data.action
         ACTIVEDATA = data.data
@@ -990,22 +1053,22 @@ function initEvents() {
     })
 
     edcEvent.on('affterPayment', (data) => {
-        console.log('affterPayment',data,TEMPHN)
+        console.log('affterPayment', data, TEMPHN)
         txtHn.focus()
     })
 
     edcEvent.on('affterReprint', (data) => {
-        console.log('affterReprint',data)
+        console.log('affterReprint', data)
     })
 
-    edcEvent.on('affterCancel',  (data) => {
-        console.log('affterCancel',data)
+    edcEvent.on('affterCancel', (data) => {
+        console.log('affterCancel', data)
         console.table(data)
-         updateStatus(data.data.id, 0)
+        updateStatus(data.data.id, 0)
     })
 
     edcEvent.on('affterTxnCancel', (data) => {
-        console.log('affterTxnCancel',data)
+        console.log('affterTxnCancel', data)
         ACTION = data.action
     })
 }
