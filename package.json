@@ -1,7 +1,7 @@
 {
   "name": "edc-connect",
   "productName": "EdcConnect",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "electron app connect edc",
   "main": "src/index.js",
   "scripts": {
